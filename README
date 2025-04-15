@@ -1,0 +1,10 @@
+Compilation with make
+The gaussian kernel can be selected by putting 
+#define GAUSSIAN
+into functionsdef.h
+
+Once compiled the program works as
+
+./v2d <NX> <NY> <NU> <NUMREL> <kernel>
+
+being kernel the kernel size
