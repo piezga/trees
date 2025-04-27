@@ -9,12 +9,12 @@ from functions import load_file_with_padding
 barro_abundances_file = barro_path + 'barro_abundances.csv'
 df = pd.DataFrame(pd.read_csv(barro_abundances_file))
 df = df.drop(columns =  ['name'])
-df['barro'] = df['barro']/df['barro'].sum()
+df['count'] = df['count']/df['count'].sum()
 
 
 for kernel in chosen_kernels:
 
-    senm_abundances = np.full(len(df.barro),0.1)
+    senm_abundances = np.full(len(df.count),0.1)
 
     for realization in range(1,num_realizations+1):
 
@@ -32,7 +32,7 @@ for kernel in chosen_kernels:
         print(current_file)
         
         abundances = load_file_with_padding(simulations_path + current_file,
-                                            len(df.barro),2)[:,1]
+                                            len(df.count),2)[:,1]
         abundances = abundances[abundances.argsort()[::-1]]  # Sort
         senm_abundances += abundances
                 

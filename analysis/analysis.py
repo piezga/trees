@@ -12,7 +12,7 @@ graph = 0
 # Move files to data folder
 [os.system(f"mv ../{file}* {simulations_path}/ 2>/dev/null") 
     for file in ["AConf","Abund"]]
-
+"""
 # Read the file
 data = np.loadtxt(simulations_path + spatial_file, dtype='int')
 abundances = np.loadtxt(simulations_path + abundance_file, dtype='int')
@@ -61,4 +61,4 @@ if graph:
     plt.title(f'nu = {nu}, K = {kernel}')
     plt.show()
 
-
+"""
