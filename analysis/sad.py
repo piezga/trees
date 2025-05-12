@@ -14,7 +14,7 @@ df['count'] = df['count']/df['count'].sum()
 
 for kernel in chosen_kernels:
 
-    senm_abundances = np.full(len(df.count),0.1)
+    senm_abundances = np.full(df.count,0.1)
 
     for realization in range(1,num_realizations+1):
 
@@ -32,7 +32,7 @@ for kernel in chosen_kernels:
         print(current_file)
         
         abundances = load_file_with_padding(simulations_path + current_file,
-                                            len(df.count),2)[:,1]
+                                            df.count,2)[:,1]
         abundances = abundances[abundances.argsort()[::-1]]  # Sort
         senm_abundances += abundances
                 
