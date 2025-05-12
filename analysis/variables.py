@@ -3,15 +3,15 @@
 
 nx = 512
 ny = 512
-kernel = '10'
+kernel = '5'
 nu = '9.000000e-05'
-num_realizations = 50
+num_realizations = 100
 
 chosen_kernels= ['1','2','5','10']
 
 #other senm variables
 
-spatial_file_template = 'AConf_NX{nx}_NY{ny}_NU{nu}_Square_Kernsize{kernel}_rel.'
+spatial_file_template = 'AConf_NX{nx}_NY{ny}_NU{nu}_Square_Kernsize{kernel}_rel.{realization}'
 abundance_file_template = 'Abund_NX{nx}_NY{ny}_NU{nu}_Square_Kernsize{kernel}_rel.'
 
 
@@ -21,8 +21,6 @@ simulations_path = '../senm/'
 
 forests = ['barro', 'wanang']
 
-barro_path = '../data/barro/'
-wanang_path = '../data/wanang/'
-
-barro_spatial_file = barro_path + "bcitree8.csv"
-barro_names_file = barro_path + "names_bci_sorted.txt"
+path_template = '../data/{forest}/'
+census_template = '{forest}_{census}.csv'
+names_template = 'names_{forest}_{census}.txt'
