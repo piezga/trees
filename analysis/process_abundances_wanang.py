@@ -3,7 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from variables import *
 
-censi = ['1','4']
+
+forest = 'barro'
+path = path_template.format(forest = forest, census = census)
+censi = ['1','2','3','4','5','6','7']
+
 
 for census in censi:
     #Load wanang data

@@ -7,7 +7,17 @@ import matplotlib.pyplot as plt
 
 # File to analyse
 
-df = pd.DataFrame(pd.read_csv(barro_spatial_file))
+
+forest = 'barro'
+census = 8
+
+path = path_template.format(forest = forest, census = census)
+
+barro_names_file = path + 'names_barro_8.txt'
+
+forest_path = path_template.format(forest=forest)
+census_file = forest_path + census_template.format(forest=forest, census=census)
+df = pd.DataFrame(pd.read_csv(census_file))
 
 # Parameters
 n_bins_x = 20 
@@ -56,13 +66,24 @@ print(species_matrix)
 
 raw_correlation_matrix = np.corrcoef(species_matrix)
 
+for i in range(100):
+    raw_correlation_matrix[i][i] = 0
+    
+
+mean = 0
+for i in range(100):
+    mean += np.sum(raw_correlation_matrix[i][i+1:])
+    
+mean /= 50*99
+
+print(f'mean correlation is : {mean}')
 
 # Check matrix properties
 print("Shape:", raw_correlation_matrix.shape)  # Should be (n_species, n_species)
 print("Is symmetric?", np.allclose(raw_correlation_matrix, 
                                    raw_correlation_matrix.T))
 
-"""
+
 plt.figure(figsize=(10, 8))
 sns.heatmap(
     raw_correlation_matrix,      # Direct NumPy array input
@@ -75,11 +96,13 @@ sns.heatmap(
     square=True             # Keep aspect ratio square
 )
 
+
+
 plt.title("Raw Species Correlation Matrix", fontsize=14)
 plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels
 plt.tight_layout()
 plt.show()
-"""
+
 
 # Preferred method for symmetric matrices (preferred for correlation matrices)
 eigenvalues = np.linalg.eigh(raw_correlation_matrix)[0]  # Returns sorted eigenvalues
