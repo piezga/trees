@@ -3,18 +3,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 from variables import *
+from functions import load_forest_data, load_senm_data
 
 # Constants
 GRID_SIZE = 512
-NUM_SPECIES = 100
+num_species = 100
 NUM_REALIZATIONS = 100
 
-def load_senm_data(realization, n_bins_x, n_bins_y):
-    """Load SENM spatial data for a single realization"""
-    file = senm_spatial_file_template.format(nx=nx, ny=ny, nu=nu, kernel=kernel, realization=realization + 1)
-    df = pd.DataFrame(np.loadtxt(f"{simulations_path}{file}"), columns=['x', 'y', 'species_id'])
-    top_species = df['species_id'].value_counts().head(NUM_SPECIES).index
-    return df[df['species_id'].isin(top_species)].copy(), top_species
 
 def compute_abundance_matrix(df, n_bins_x, n_bins_y):
     """Compute species abundance matrix"""
@@ -38,18 +33,7 @@ def compute_mean_spectrum(n_bins_x, n_bins_y):
         eig_matrix[realization] = np.sort(np.linalg.eigvalsh(corr))[::-1]
     return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
 
-def load_forest_data(forest, census):
-    """Load forest census data"""
-    df = pd.read_csv(f"{path_template.format(forest=forest)}{census_template.format(forest=forest, census=census)}")
-    names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=census)}"
-    
-    try:
-        names = np.loadtxt(names_file, dtype='str', ndmin=1)[:NUM_SPECIES]
-        names = [n[0] if isinstance(n, np.ndarray) else str(n) for n in names]
-    except ValueError:
-        with open(names_file) as f:
-            names = [line.strip() for line in f if line.strip()][:NUM_SPECIES]
-    return df, names
+
 
 def compute_forest_spectrum(df, names, n_bins_x, n_bins_y):
     """Compute eigenvalue spectrum for forest data"""
