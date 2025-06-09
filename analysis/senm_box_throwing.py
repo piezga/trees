@@ -8,14 +8,14 @@ from variables import *
 
 
 # Parameters for simulated data
-NUM_REALIZATIONS = 50  # Number of simulated configurations
+NUM_REALIZATIONS = 10  # Number of simulated configurations
 NUM_SPECIES = 1         # Analyze top N most abundant species (e.g., 1 for the most abundant)
 DOMAIN_SIZE = 500       
 
 # Define parameters for the analysis
 min_box_size = 2        # Minimum box size 
-max_box_size = 50     # Maximum box size
-step_size = 1           # Step size for increasing box size
+max_box_size = 250     # Maximum box size
+step_size = 5           # Step size for increasing box size
 N = 10000              # Number of random boxes per size
 
 # Initialize storage for aggregated results
