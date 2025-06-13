@@ -40,18 +40,18 @@ def get_forest_file(forest: str, census: int) -> str:
     return file
 
 def load_forest_data(forest, census, num_species):
-    """Load forest census data"""
+    """Load forest census data and top species names"""
     df = pd.read_csv(f"{path_template.format(forest=forest)}{census_template.format(forest=forest, census=census)}")
     names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=census)}"
  
     try:
-        names = np.loadtxt(names_file, dtype='str', ndmin=1)[num_species]
+        names = np.loadtxt(names_file, dtype='str', ndmin=1)[:num_species]
         names = [n[0] if isinstance(n, np.ndarray) else str(n) for n in names]
     except ValueError:
         with open(names_file) as f:
             names = [line.strip() for line in f if line.strip()][:num_species]
-    return df
-
+    
+    return df, names
 
 def load_senm_data(nx, ny, nu, kernel, realization):
     """
@@ -89,3 +89,21 @@ def load_senm_data(nx, ny, nu, kernel, realization):
         raise FileNotFoundError(f"Simulation file not found at: {file_path}")
     except Exception as e:
         raise Exception(f"Error loading simulation data: {str(e)}")
+
+
+def get_top_species(df, N):
+    """
+    Returns the dataframe containing only the N most 
+    abundant species
+    """
+
+    # 1. Count occurrences of each species
+    species_counts = df['species_id'].value_counts()
+
+    # 2. Get the 100 most abundant species
+    top_N_species = species_counts.head(N).index
+
+    # 3. Filter the original DataFrame to keep only these species
+    filtered_df = df[df['species_id'].isin(top_N_species)]
+    
+    return filtered_df
