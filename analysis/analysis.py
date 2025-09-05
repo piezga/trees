@@ -14,10 +14,14 @@ from spectrum_functions import *
 
 forest = 'barro'
 censuses = [1, 2, 3, 4, 5, 6, 7, 8]  # Your selected censuses to analyze
-bin_numbers = [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 28, 32, 36, 40,44,46,48,50
-               ,55,60,65,70,80,90,100,120]
+bin_numbers = [11,90]
+
+
+
+
 
 divergence_over_bins = []
+square_differences = []
 
 for n_bins_unrounded in bin_numbers:
     n_bins = int(n_bins_unrounded)
@@ -52,12 +56,18 @@ for n_bins_unrounded in bin_numbers:
         all_labels.append(str(census))       # Add census label
     
     mean_forest_spectrum = np.mean(np.array(all_forest_spectra), axis=0)
+    
+    square_differences.append(np.sum(square_difference(senm_mean[:20], mean_forest_spectrum[:20])))
+
+
 
     # Plot the combined spectra for this bin size (SENM + Forest Spectra)
-    plot_combined_spectra(all_spectra, all_labels, f"Spectrum for {forest} at {boxlen_label}", 
+    plot_combined_spectra(all_spectra, all_labels, f"Correlation matrix spectrum at L = {boxlen_label}", 
                           f"{path}plots/combined_spectrum_{n_bins}.png", senm_std=senm_std
                           , n_bins_x= n_bins, n_bins_y = n_bins)
+    
 
+    """
     # Calculate the KL divergence
     distribution_bins = 20
     forest_distribution, senm_distribution = spectra_to_distributions(forest_spectrum
@@ -70,8 +80,13 @@ for n_bins_unrounded in bin_numbers:
 
     # Store the divergence for this bin size
     divergence_over_bins.append(kl_divergence)
+    
+plt.plot(square_differences)
+plt.show()
+
 
 # Print and plot KL divergence over bin numbers
 print(f"Divergence over bins is: {divergence_over_bins}")
 plot_KL(divergence_over_bins, bin_numbers, GRID_SIZE, prefix=f"Filter {low_filter}") 
 plt.show()
+"""

@@ -13,7 +13,7 @@ from functions import get_top_species
 
 # Constants
 GRID_SIZE = 500
-NUM_SPECIES = 250
+NUM_SPECIES = 100
 N = NUM_SPECIES
 NUM_REALIZATIONS = 10
 
@@ -74,42 +74,52 @@ def marchenko_pastur_bounds(n_bins_x, n_bins_y, num_species):
     return lambda_min, lambda_max
 
 def plot_combined_spectra(all_spectra, labels, title, filename, senm_std=None, n_bins_x=None, n_bins_y=None):
-    """Plot multiple spectra together with elegant styling and Marchenko-Pastur bounds."""
+    """Plot multiple spectra together with enhanced styling for presentation."""
     plt.figure(figsize=(12, 7))
     x = np.arange(1, NUM_SPECIES + 1)
-    
-    # Determine if we have SENM reference data
+
+    # Set global font and line styles
+    plt.rcParams.update({
+        'font.size': 14,
+        'font.weight': 'bold',
+        'axes.labelweight': 'bold',
+        'axes.titlesize': 16,
+        'axes.titleweight': 'bold',
+        'lines.linewidth': 2.5,
+        'lines.markersize': 8
+    })
+
     has_senm = senm_std is not None
-    
-    # Plot SENM reference first if present
+
     if has_senm:
         plt.errorbar(x, all_spectra[0], yerr=senm_std, fmt='o-', 
-                    color='#1f77b4', markersize=5, capsize=3, alpha=0.7,
-                    label='SENM (Reference)')
-    
-    # Calculate number of forest censuses to plot
+                     color='#1f77b4', capsize=4, alpha=0.8,
+                     label='SENM (Reference)', linewidth=3, markersize=9)
+
     n_forest = len(all_spectra) - (1 if has_senm else 0)
     colors = plt.cm.viridis(np.linspace(0.3, 0.9, n_forest))
-    
-    # Plot forest censuses with distinct colors
-    for i, (spectrum, label) in enumerate(zip(all_spectra[1:] if has_senm else all_spectra, 
-                                            labels[1:] if has_senm else labels)):
-        plt.loglog(x, spectrum, 'o-', color=colors[i], markersize=4, 
-                  label=f'Census {label}', alpha=0.8)
 
-    # Plot the Marchenko-Pastur bounds
+    for i, (spectrum, label) in enumerate(zip(all_spectra[1:] if has_senm else all_spectra,
+                                              labels[1:] if has_senm else labels)):
+        plt.loglog(x, spectrum, 'o-', color=colors[i], 
+                   label=f'Census {label}', alpha=0.85)
+
+    # Uncomment if Marchenko-Pastur bounds are to be added
+    """
     if n_bins_x is not None and n_bins_y is not None:
         lambda_min, lambda_max = marchenko_pastur_bounds(n_bins_x, n_bins_y, NUM_SPECIES)
-        plt.axhline(lambda_min, color='r', linestyle='--', label=f'Marchenko-Pastur Min: {lambda_min:.2f}')
-        plt.axhline(lambda_max, color='r', linestyle='--', label=f'Marchenko-Pastur Max: {lambda_max:.2f}')
+        plt.axhline(lambda_min, color='r', linestyle='--', label=f'Marchenko-Pastur Min: {lambda_min:.2f}', linewidth=2)
+        plt.axhline(lambda_max, color='r', linestyle='--', label=f'Marchenko-Pastur Max: {lambda_max:.2f}', linewidth=2)
         plt.fill_between(x, lambda_min, lambda_max, color='gray', alpha=0.2, label='Marchenko-Pastur Range')
-    
-    plt.xscale('log'); plt.yscale('log')
-    plt.xlabel('Eigenvalue Rank', fontsize=12)
-    plt.ylabel('Eigenvalue Magnitude', fontsize=12)
-    plt.title(title, fontsize=14)
-    plt.legend(fontsize=10, framealpha=0.9)
-    plt.grid(True, which="both", ls="--", alpha=0.4)
+    """
+
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.xlabel('Eigenvalue Rank', fontsize=15, weight='bold')
+    plt.ylabel('Eigenvalue Magnitude', fontsize=15, weight='bold')
+    plt.title(title, fontsize=17, weight='bold')
+    plt.legend(fontsize=12, framealpha=0.95)
+    plt.grid(True, which="both", linestyle="--", alpha=0.5)
     plt.tight_layout()
     plt.savefig(filename, dpi=300, bbox_inches='tight')
     plt.close()
@@ -233,4 +243,10 @@ def plot_KL(divergence_values, bin_numbers, grid_size, prefix = ''):
     plt.title(f"{prefix} KL Divergence vs. Box Size")
     plt.grid(True)
     plt.tight_layout()
+
+def square_difference(spectrum1, spectrum2):
     
+    difference = spectrum1 - spectrum2
+    sq_diff = difference**2
+    
+    return sq_diff
