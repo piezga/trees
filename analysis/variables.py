@@ -3,7 +3,7 @@
 
 nx = 500
 ny = 500
-kernel = '5'
+kernel = '3'
 nu = '9.000000e-05'
 num_realizations = 100
 

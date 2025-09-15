@@ -13,8 +13,6 @@ from functions import get_top_species
 
 # Constants
 GRID_SIZE = 500
-NUM_SPECIES = 100
-N = NUM_SPECIES
 NUM_REALIZATIONS = 10
 
 
@@ -27,7 +25,7 @@ def shuffle_labels(df):
     df_randomized['name'] = np.random.permutation(df['name'])  # Shuffle labels
     return df_randomized
 
-def compute_abundance_matrix(df, n_bins_x, n_bins_y):
+def compute_abundance_matrix(num_species,df, n_bins_x, n_bins_y):
     """Compute species abundance matrix"""
     
     df = df.copy()
@@ -35,22 +33,22 @@ def compute_abundance_matrix(df, n_bins_x, n_bins_y):
     df['x_bin'] = (df['x'] / (GRID_SIZE / n_bins_x)).astype(int).clip(0, n_bins_x - 1)
     df['y_bin'] = (df['y'] / (GRID_SIZE / n_bins_y)).astype(int).clip(0, n_bins_y - 1)
     
-    abundance = np.zeros((NUM_SPECIES, n_bins_x * n_bins_y))
+    abundance = np.zeros((num_species, n_bins_x * n_bins_y))
     for i, (_, group) in enumerate(df.groupby('species_id')):
         bin_counts = group.groupby(['x_bin', 'y_bin']).size()
         for (x, y), count in bin_counts.items():
             abundance[i, x * n_bins_y + y] = count
     return abundance
 
-def compute_mean_senm_spectrum(n_bins_x, n_bins_y):
+def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y):
 
     """Compute mean eigenvalue spectrum for SENM"""
 
-    eig_matrix = np.zeros((NUM_REALIZATIONS, NUM_SPECIES))
+    eig_matrix = np.zeros((NUM_REALIZATIONS, num_species))
     for realization in range(NUM_REALIZATIONS):
         df = load_senm_data(nx, ny, nu, kernel, realization + 1)
-        df_top_N = get_top_species(df,N) 
-        abundance = compute_abundance_matrix(df_top_N, n_bins_x, n_bins_y)
+        df_top_N = get_top_species(df,num_species) 
+        abundance = compute_abundance_matrix(num_species,df_top_N, n_bins_x, n_bins_y)
         corr = np.nan_to_num(np.corrcoef(abundance), nan=0)
         eig_matrix[realization] = np.sort(np.linalg.eigvalsh(corr))[::-1]
     return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
@@ -66,17 +64,17 @@ def compute_forest_spectrum(df, names, n_bins_x, n_bins_y):
     corr = np.nan_to_num(np.corrcoef(species_matrix), nan=0)
     return np.sort(np.linalg.eigvalsh(corr))[::-1]
 
-def marchenko_pastur_bounds(n_bins_x, n_bins_y, num_species):
+def marchenko_pastur_bounds(num_species,n_bins_x, n_bins_y):
     """Calculate the Marchenko-Pastur bounds."""
-    ratio = n_bins_x / num_species
+    ratio = num_species/ n_bins_x**2
     lambda_min = (1 - np.sqrt(ratio))**2
     lambda_max = (1 + np.sqrt(ratio))**2
     return lambda_min, lambda_max
 
-def plot_combined_spectra(all_spectra, labels, title, filename, senm_std=None, n_bins_x=None, n_bins_y=None):
+def plot_combined_spectra(num_species,all_spectra, labels, title, filename, senm_std=None, n_bins_x=None, n_bins_y=None):
     """Plot multiple spectra together with enhanced styling for presentation."""
     plt.figure(figsize=(12, 7))
-    x = np.arange(1, NUM_SPECIES + 1)
+    x = np.arange(1, num_species + 1)
 
     # Set global font and line styles
     plt.rcParams.update({
@@ -105,13 +103,11 @@ def plot_combined_spectra(all_spectra, labels, title, filename, senm_std=None, n
                    label=f'Census {label}', alpha=0.85)
 
     # Uncomment if Marchenko-Pastur bounds are to be added
-    """
     if n_bins_x is not None and n_bins_y is not None:
-        lambda_min, lambda_max = marchenko_pastur_bounds(n_bins_x, n_bins_y, NUM_SPECIES)
+        lambda_min, lambda_max = marchenko_pastur_bounds(num_species,n_bins_x, n_bins_y)
         plt.axhline(lambda_min, color='r', linestyle='--', label=f'Marchenko-Pastur Min: {lambda_min:.2f}', linewidth=2)
         plt.axhline(lambda_max, color='r', linestyle='--', label=f'Marchenko-Pastur Max: {lambda_max:.2f}', linewidth=2)
         plt.fill_between(x, lambda_min, lambda_max, color='gray', alpha=0.2, label='Marchenko-Pastur Range')
-    """
 
     plt.xscale('log')
     plt.yscale('log')

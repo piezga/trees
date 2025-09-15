@@ -14,8 +14,8 @@ from spectrum_functions import *
 
 forest = 'barro'
 censuses = [1, 2, 3, 4, 5, 6, 7, 8]  # Your selected censuses to analyze
-bin_numbers = [11,90]
-
+bin_numbers = [12] 
+num_species = 100
 
 
 
@@ -31,7 +31,7 @@ for n_bins_unrounded in bin_numbers:
     boxlen_label = f"{int(round(boxlen))}m"
 
     # Compute SENM reference spectrum once per bin size
-    senm_mean, senm_std = compute_mean_senm_spectrum(n_bins, n_bins)
+    senm_mean, senm_std = compute_mean_senm_spectrum(num_species,n_bins, n_bins)
    
     # Prepare storage for all census data
     all_spectra = [senm_mean]  # SENM spectrum first
@@ -45,7 +45,7 @@ for n_bins_unrounded in bin_numbers:
         os.makedirs(f"{path}plots", exist_ok=True)
         
         # Compute forest spectrum_to_distribution
-        df, names = load_forest_data(forest, census, N)
+        df, names = load_forest_data(forest, census, num_species)
         randomized_df = shuffle_labels(df)
         forest_spectrum = compute_forest_spectrum(df, names, n_bins, n_bins)
         random_forest_spectrum = compute_forest_spectrum(randomized_df, names, n_bins, n_bins)
@@ -62,7 +62,7 @@ for n_bins_unrounded in bin_numbers:
 
 
     # Plot the combined spectra for this bin size (SENM + Forest Spectra)
-    plot_combined_spectra(all_spectra, all_labels, f"Correlation matrix spectrum at L = {boxlen_label}", 
+    plot_combined_spectra(num_species,all_spectra, all_labels, f"Correlation matrix spectrum at L = {boxlen_label}", 
                           f"{path}plots/combined_spectrum_{n_bins}.png", senm_std=senm_std
                           , n_bins_x= n_bins, n_bins_y = n_bins)
     
