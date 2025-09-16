@@ -246,3 +246,105 @@ def square_difference(spectrum1, spectrum2):
     sq_diff = difference**2
     
     return sq_diff
+
+
+
+def senm_bootstrap(num_species, n_bins_x, n_bins_y, num_removals, num_iterations):
+    """Compute mean eigenvalue spectrum for SENM with bootstrap resampling by removing random species"""
+    
+    # Initialize matrix to store eigenvalues for all iterations
+    eig_matrix = np.zeros((num_iterations, num_species - num_removals))
+    
+    for iteration in range(num_iterations):
+        # Load the base SENM data
+        df = load_senm_data(nx, ny, nu, kernel, iteration + 1)
+        
+        # Get top N species first
+        df_top_N = get_top_species(df, num_species)
+        
+        # Get the unique species IDs from the top N dataframe
+        all_species_ids = df_top_N['species_id'].unique()
+        
+        # Randomly remove 'num_removals' species
+        if num_removals > 0:
+            # Randomly select species IDs to remove
+            species_to_remove = np.random.choice(all_species_ids, size=num_removals, replace=False)
+            
+            # Remove those species from the dataframe
+            df_reduced = df_top_N[~df_top_N['species_id'].isin(species_to_remove)]
+            remaining_species = num_species - num_removals
+        else:
+            df_reduced = df_top_N
+            remaining_species = num_species
+        
+        # Compute abundance matrix with reduced species
+        abundance = compute_abundance_matrix(remaining_species, df_reduced, n_bins_x, n_bins_y)
+        
+        # Compute correlation matrix and eigenvalues
+        corr = np.nan_to_num(np.corrcoef(abundance), nan=0)
+        eigenvalues = np.sort(np.linalg.eigvalsh(corr))[::-1]
+        
+        # Store the eigenvalues
+        eig_matrix[iteration] = eigenvalues
+    
+    return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
+
+def forest_bootstrap(forest, censuses, num_species, n_bins_x, n_bins_y, num_removals, num_iterations):
+    """
+    Compute mean eigenvalue spectrum for empirical forest data with bootstrap resampling
+    by removing random species and averaging over censuses
+    """
+
+    # Initialize matrix to store mean spectra for all iterations
+    eig_matrix = np.zeros((num_iterations, num_species - num_removals))
+
+    for iteration in range(num_iterations):
+        print(f"\nBootstrap iteration {iteration + 1}/{num_iterations}")
+
+        # List to store spectra for this bootstrap iteration across all censuses
+        bootstrap_spectra = []
+
+        for census in censuses:
+            print(f"  Processing {forest} census {census}...")
+
+            # Load forest data for this census
+            df, names = load_forest_data(forest, census, num_species)
+
+            # Randomly remove 'num_removals' species from both df and names
+            if num_removals > 0:
+                # Convert names to numpy array for easier indexing
+                names_array = np.array(names)
+
+                # Randomly select indices to remove
+                indices_to_remove = np.random.choice(len(names_array), size=num_removals,
+                                                     replace=False)
+
+                # Get the species names to remove
+                species_to_remove = names_array[indices_to_remove]
+
+                # Remove those species from the dataframe
+                df_reduced = df[~df['name'].isin(species_to_remove)]
+
+                # Remove those species from the names list
+                names_reduced = [name for i,
+                                 name in enumerate(names) if i not in indices_to_remove]
+
+                remaining_species = num_species - num_removals
+            else:
+                df_reduced = df
+                names_reduced = names
+                remaining_species = num_species
+
+            # Compute forest spectrum with reduced species
+            forest_spectrum = compute_forest_spectrum(df_reduced, names_reduced, n_bins_x, 
+                                                      n_bins_y)
+
+            bootstrap_spectra.append(forest_spectrum)
+
+        # Average the spectra across all censuses for this bootstrap iteration
+        mean_spectrum = np.mean(np.array(bootstrap_spectra), axis=0)
+
+        # Store the mean eigenvalues for this iteration
+        eig_matrix[iteration] = mean_spectrum
+
+    return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
