@@ -66,9 +66,16 @@ def compute_forest_spectrum(df, names, n_bins_x, n_bins_y):
 
 def marchenko_pastur_bounds(num_species,n_bins_x, n_bins_y):
     """Calculate the Marchenko-Pastur bounds."""
-    ratio = num_species/ n_bins_x**2
-    lambda_min = (1 - np.sqrt(ratio))**2
-    lambda_max = (1 + np.sqrt(ratio))**2
+    ratio = num_species/ n_bins_x*n_bins_y
+
+    if ratio > 1 :
+        print('Out of MP range')
+        lambda_min = 0
+        lambda_max = 0
+    else : 
+        lambda_min = (1 - np.sqrt(ratio))**2
+        lambda_max = (1 + np.sqrt(ratio))**2
+     
     return lambda_min, lambda_max
 
 def plot_combined_spectra(num_species,all_spectra, labels, title, filename, senm_std=None, n_bins_x=None, n_bins_y=None):
