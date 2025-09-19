@@ -66,7 +66,7 @@ def compute_forest_spectrum(df, names, n_bins_x, n_bins_y):
 
 def marchenko_pastur_bounds(num_species,n_bins_x, n_bins_y):
     """Calculate the Marchenko-Pastur bounds."""
-    ratio = num_species/ n_bins_x*n_bins_y
+    ratio = num_species/ (n_bins_x*n_bins_y)
 
     if ratio > 1 :
         print('Out of MP range')
@@ -355,3 +355,42 @@ def forest_bootstrap(forest, censuses, num_species, n_bins_x, n_bins_y, num_remo
         eig_matrix[iteration] = mean_spectrum
 
     return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
+
+
+def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max):
+    """
+    Calculate the squared difference of all eigenvalues above lambda_max
+    between two spectra.
+
+    Parameters:
+    spectrum_A, spectrum_B: arrays of eigenvalues (sorted in descending order)
+    lambda_max: threshold value
+
+    Returns:
+    squared_difference: sum of squared differences for eigenvalues > lambda_max
+    """
+    # Get eigenvalues above lambda_max from both spectra
+    eigenvalues_A_above = spectrum_A[spectrum_A > lambda_max]
+    eigenvalues_B_above = spectrum_B[spectrum_B > lambda_max]
+
+    # Make sure we have the same number of eigenvalues above threshold
+    min_length = min(len(eigenvalues_A_above), len(eigenvalues_B_above))
+
+    if min_length == 0:
+        return 0  # No eigenvalues above threshold
+
+    # Take the first min_length eigenvalues from both arrays
+    eigenvalues_A_above = eigenvalues_A_above[:min_length]
+    eigenvalues_B_above = eigenvalues_B_above[:min_length]
+
+    # Calculate relative squared difference
+    squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)
+    magnitude_A = np.sum(eigenvalues_A_above ** 2)
+    magnitude_B = np.sum(eigenvalues_B_above ** 2)
+    
+    # Normalize by average magnitude
+    normalized_diff = squared_diff / ((magnitude_A + magnitude_B) / 2)
+
+    return normalized_diff
+
+

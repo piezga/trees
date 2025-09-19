@@ -13,9 +13,9 @@ from spectrum_functions import *
 forest = 'barro'
 censuses = [1,2,3,4]
 num_species = 200
-resolutions = range(50,100,5)
-num_replicas = 50
-num_removals = 20
+resolutions = range(5,50,5)
+num_replicas = 5
+num_removals = 150
 
 
 for resolution in resolutions:
@@ -59,7 +59,7 @@ for resolution in resolutions:
          label='Empirical Forest', color=colors[2], alpha=0.8)
 
     # Add MP bounds
-    lambda_min, lambda_max = marchenko_pastur_bounds(num_species, n_bins, n_bins)
+    lambda_min, lambda_max = marchenko_pastur_bounds(num_species-num_removals, n_bins, n_bins)
     
     # Add MP bounds as reference lines
     plt.axhline(y=lambda_max, color='red', linestyle='--', alpha=0.7, 
