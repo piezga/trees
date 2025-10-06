@@ -1,0 +1,8 @@
+## 6/10/25
+
+Looking at the differences between barro and wanang dataset. Wanang has aroun 230k trees but more than 100k are labelled 'unknkown".
+What consequences does this have?
+
+The community analysis looks more or less the same from 150 (100) species onward for wanang (barro)
+
+Oddly enough Wanang seems to follow the opposite size scaling with respect to Barro

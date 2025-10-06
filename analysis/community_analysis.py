@@ -12,11 +12,11 @@ from functions import get_top_species
 from spectrum_functions import *
 
 
-forests = ['barro','wanang']
+forests = ['wanang']
 censuses_barro = [1,2,3,4,5,6,7,8]
 censuses_wanang = [1,4]
-num_species = [50,100,150,200]
-resolutions = range(3,20,1)
+num_species = [50,100,200]
+resolutions = range(5,18,1)
 
 # Create the plot
 plt.figure(figsize=(10, 6))
@@ -32,7 +32,9 @@ for forest in forests:  # ADDED: Outer loop over forests
 
 
     for num in num_species:
-
+        # This is calculated by taking T > 10N
+        max_MP_boxlen = 500/(3*np.sqrt(num))
+        print(f"Max trustworthy resolution: {max_MP_boxlen}")
         senm_communities = []
         empirical_communities =  []
         square_diffs = []
@@ -158,8 +160,10 @@ for forest in forests:  # ADDED: Outer loop over forests
 
 
         # Plot square difference
-        plt.plot(resolutions, square_diffs, 'o-', label = f'{forest} - {num} Species', linewidth=2, markersize=6)  # MODIFIED: Added forest name to label
-
+        plt.plot(resolutions, square_diffs, 'o-', label = f'{forest} - {num} Species', 
+        linewidth=2, markersize=6)  # MODIFIED: Added forest name to label
+        #plt.axvline(x=max_MP_boxlen, color=plt.gca().lines[-1].get_color(), 
+        #linestyle='--', alpha=0.7)
 
 # Add labels and title
 plt.xlabel('Length', fontsize=12)
