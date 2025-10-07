@@ -6,3 +6,10 @@ What consequences does this have?
 The community analysis looks more or less the same from 150 (100) species onward for wanang (barro)
 
 Oddly enough Wanang seems to follow the opposite size scaling with respect to Barro
+
+## 7/10/25
+
+Riguardo a wanang e agli alberi non etichettati, provo a proporvi un'argomentazione:
+
+Assumendo che gli alberi "unknown" siano distribuiti con la stessa distribuzione di quelli etichettati (magari sono ancora giovani e difficili da distinguere), rimuovere una porzione significativa di alberi (40%) equivale a riscalare le distanze, perché rende gli alberi artificialmente più distanti tra di loro. Questo potrebbe spiegare il fatto che il minimo della curva si trovi a distanze molto più piccole rispetto a barro: i 9-10 metri sono in realtà 13-14.
+
