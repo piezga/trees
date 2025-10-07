@@ -4,7 +4,7 @@
 nx = 500
 ny = 500
 kernel = '3'
-nu = '2.000000e-04'
+nu = '1.500000e-04'
 num_realizations = 100
 
 chosen_kernels= ['2','3','5']

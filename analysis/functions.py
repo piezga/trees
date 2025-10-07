@@ -40,17 +40,24 @@ def get_forest_file(forest: str, census: int) -> str:
     return file
 
 def load_forest_data(forest, census, num_species):
-    """Load forest census data and top species names"""
-    df = pd.read_csv(f"{path_template.format(forest=forest)}{census_template.format(forest=forest, census=census)}")
+    # Load main CSV data
+    df = pd.read_csv(
+        f"{path_template.format(forest=forest)}{census_template.format(forest=forest, census=census)}"
+    )
+
+    # Load names file (handling UTF-8 BOM)
     names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=census)}"
- 
+
     try:
-        names = np.loadtxt(names_file, dtype='str', ndmin=1)[:num_species]
-        names = [n[0] if isinstance(n, np.ndarray) else str(n) for n in names]
-    except ValueError:
-        with open(names_file) as f:
+        # Safely read lines and strip whitespace
+        with open(names_file, encoding='utf-8-sig') as f:
             names = [line.strip() for line in f if line.strip()][:num_species]
-    
+    except Exception as e:
+        raise RuntimeError(f"Error reading names file '{names_file}': {e}")
+
+    # Filter DataFrame to only top species
+    df = df[df['name'].isin(names)]
+
     return df, names
 
 def load_senm_data(nx, ny, nu, kernel, realization):
