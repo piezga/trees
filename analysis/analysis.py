@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import os
 import seaborn as sns
-from scipy.special import rel_entr
-from scipy.interpolate import interp1d
+import matplotlib
+matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
+import matplotlib.pyplot as plt
 
 from variables import *
 from functions import load_forest_data, load_senm_data
@@ -12,81 +12,111 @@ from functions import get_top_species
 from spectrum_functions import *
 
 
-forest = 'barro'
-censuses = [1, 2, 3, 4, 5, 6, 7, 8]  # Your selected censuses to analyze
-bin_numbers = [12] 
-num_species = 100
+forests = ['wanang']
+censuses_barro = [1,2,3,4,5,6,7,8]
+censuses_wanang = [1,4]
+num_species = [50,100,200,250]
+resolutions = range(3,20,1)
+
+# Create the plot
+plt.figure(figsize=(10, 6))
+
+for forest in forests:  # ADDED: Outer loop over forests
+
+    if forest == 'barro':
+        censuses = censuses_barro
+    elif forest == 'wanang':
+        censuses = censuses_wanang
+
+    print(f"Censuses are {censuses}")
+
+    for num in num_species:
+
+        senm_communities = []
+        empirical_communities =  []
+        square_diffs = []
+
+        #  FIX: Reset NN distances for this species count
+        census_nn_distances = []
+
+        #  COMPUTE NN DISTANCES ONCE PER num_species (not per resolution)
+        for census in censuses:
+            print(f"Calculating NN distance for census {census}")
+            df, names = load_forest_data(forest, census, num)
 
 
+            coords = df[['x', 'y']].values
+            if len(coords) > 1:
+                from scipy.spatial import KDTree
+                tree = KDTree(coords)
+                distances, indices = tree.query(coords, k=2)
+                min_distances = distances[:, 1]
+                census_nn = np.mean(min_distances)
+                census_nn_distances.append(census_nn)
+
+        for resolution in resolutions:
 
 
-divergence_over_bins = []
-square_differences = []
+            n_bins_unrounded = GRID_SIZE/resolution
+            n_bins = int(n_bins_unrounded)
+            boxlen = resolution
+            boxlen_label = f"{int(round(resolution))}m"
+            
 
-for n_bins_unrounded in bin_numbers:
-    n_bins = int(n_bins_unrounded)
-    print(f"\n{'='*50}\nAnalyzing {n_bins}x{n_bins} bins\n{'='*50}")
-    
-    boxlen = GRID_SIZE / n_bins
-    boxlen_label = f"{int(round(boxlen))}m"
+            # Compute MP bounds
+            lambda_min, lambda_max = marchenko_pastur_bounds(num,n_bins, n_bins)
+            
+            # Compute SENM reference spectrum once per bin size
+            senm_mean, senm_std = compute_mean_senm_spectrum(num,n_bins, n_bins)
 
-    # Compute SENM reference spectrum once per bin size
-    senm_mean, senm_std = compute_mean_senm_spectrum(num_species,n_bins, n_bins)
-   
-    # Prepare storage for all census data
-    all_spectra = [senm_mean]  # SENM spectrum first
-    all_labels = ['SENM']      # Label for SENM
-    all_forest_spectra = []
-    all_random_spectra = [] 
-    
-    for census in censuses:
-        print(f"\nProcessing {forest} census {census}...")
-        path = path_template.format(forest=forest)
-        os.makedirs(f"{path}plots", exist_ok=True)
-        
-        # Compute forest spectrum_to_distribution
-        df, names = load_forest_data(forest, census, num_species)
-        randomized_df = shuffle_labels(df)
-        forest_spectrum = compute_forest_spectrum(df, names, n_bins, n_bins)
-        random_forest_spectrum = compute_forest_spectrum(randomized_df, names, n_bins, n_bins)
-        
-        all_spectra.append(forest_spectrum)  # Add forest spectra to the list
-        all_forest_spectra.append(forest_spectrum)
-        all_random_spectra.append(random_forest_spectrum)
-        all_labels.append(str(census))       # Add census label
-    
-    mean_forest_spectrum = np.mean(np.array(all_forest_spectra), axis=0)
-    
-    square_differences.append(np.sum(square_difference(senm_mean[:20], mean_forest_spectrum[:20])))
+            forest_spectra = []
 
+            for census in censuses:
+                path = path_template.format(forest=forest)
+                os.makedirs(f"{path}plots", exist_ok=True)
 
+                df, names = load_forest_data(forest, census, num)
 
-    # Plot the combined spectra for this bin size (SENM + Forest Spectra)
-    plot_combined_spectra(num_species,all_spectra, all_labels, f"Correlation matrix spectrum at L = {boxlen_label}", 
-                          f"{path}plots/combined_spectrum_{n_bins}.png", senm_std=senm_std
-                          , n_bins_x= n_bins, n_bins_y = n_bins)
-    
+                forest_spectrum = compute_forest_spectrum(df, names, n_bins, n_bins)
+                forest_spectra.append(forest_spectrum)
 
-    """
-    # Calculate the KL divergence
-    distribution_bins = 20
-    forest_distribution, senm_distribution = spectra_to_distributions(forest_spectrum
-                                                                      , mean_forest_spectrum, n_bins=distribution_bins)
-    low_filter = 4
-    kl_divergence = KL_divergence(forest_distribution[low_filter:], senm_distribution[low_filter:])
-    
-    plot_distributions(forest_distribution, senm_distribution, kl_divergence, 
-                       title_prefix=f"Size {boxlen:.2f}, Filter {low_filter} ")
+            mean_forest_spectrum = np.mean(np.array(forest_spectra), axis = 0)
 
-    # Store the divergence for this bin size
-    divergence_over_bins.append(kl_divergence)
-    
-plt.plot(square_differences)
-plt.show()
+            # Count eigenvalues above MP upper bound for SENM null model
+            senm_count = np.sum(senm_mean > lambda_max)
+            senm_communities.append(senm_count)
+
+            # Count eigenvalues above MP upper bound for empirical forest spectrum
+            forest_count = np.sum(mean_forest_spectrum > lambda_max)
+            empirical_communities.append(forest_count)
+
+            # Calculate square difference 
+            square_diff = square_diff_above_MP(senm_mean, mean_forest_spectrum, lambda_max)
+            square_diffs.append(square_diff)
+
+        # CALCULATE mean NN distance after loop
+        mean_nn_distance = np.mean(census_nn_distances) if census_nn_distances else 0
+        print(f"Mean nearest neighbor distance for {forest} with {num} species: {mean_nn_distance:.6f}m")
+                
+        # Convert to arrays
+        senm_communities = np.array(senm_communities) 
+
+        empirical_communities = np.array(empirical_communities)
+
+        # Difference
+        difference_vector = np.abs(senm_communities - empirical_communities)
+
+        # Plot square difference
+        plt.plot(resolutions, square_diffs, 'o-', label = f'{forest} - {num} Species', linewidth=2, markersize=6)
 
 
-# Print and plot KL divergence over bin numbers
-print(f"Divergence over bins is: {divergence_over_bins}")
-plot_KL(divergence_over_bins, bin_numbers, GRID_SIZE, prefix=f"Filter {low_filter}") 
-plt.show()
-"""
+# Final plot setup
+plt.xlabel('Length', fontsize=12)
+plt.ylabel('Square difference  > λ_max', fontsize=12)
+plt.title('Square difference of Significant Eigenvalues ', fontsize=14)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show(block=True)
+plt.close()
+
