@@ -6,29 +6,25 @@ import matplotlib
 matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
 import matplotlib.pyplot as plt
 
-from variables import *
-from functions import load_forest_data, load_senm_data
-from functions import get_top_species
-from spectrum_functions import *
+from src.config import load_config
+config = load_config()
+from src.functions import *
 
 
-forests = ['wanang']
-censuses_barro = [1,2,3,4,5,6,7,8]
-censuses_wanang = [1,4]
-num_species = [50,100,200,250]
-resolutions = range(3,20,1)
+debug = True
+
+GRID_SIZE = config['grid']['size']
+forests = ['wanang','barro']
+num_species = config['analysis']['num_species']
+resolutions = range(3,8,2)
 
 # Create the plot
 plt.figure(figsize=(10, 6))
 
-for forest in forests:  # ADDED: Outer loop over forests
-
-    if forest == 'barro':
-        censuses = censuses_barro
-    elif forest == 'wanang':
-        censuses = censuses_wanang
-
-    print(f"Censuses are {censuses}")
+for forest in forests:  
+    censuses = config['forests']['censuses'][f'{forest}']
+    if debug:
+        print(f"Censuses are {censuses}")
 
     for num in num_species:
 

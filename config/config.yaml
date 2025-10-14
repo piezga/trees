@@ -1,0 +1,38 @@
+# config/config.yaml
+
+# SENM simulation parameters
+senm:
+  nx: 500
+  ny: 500
+  kernel: "3"
+  nu: "1.500000e-04"
+  num_realizations: 100
+  chosen_kernels: ["2", "3", "5"]
+
+# File templates for SENM output
+senm_templates:
+  spatial: "AConf_NX{nx}_NY{ny}_NU{nu}_Square_Kernsize{kernel}_rel.{realization}"
+  abundance: "Abund_NX{nx}_NY{ny}_NU{nu}_Square_Kernsize{kernel}_rel.{realization}"
+  path: "senm/"
+
+# Real forest datasets
+forests:
+  list: ["barro", "wanang"]
+  templates: 
+    path_template: "data/{forest}/"
+    census_template: "{forest}_{census}.csv"
+    abundance_template: "{forest}_abundances_{census}.csv"
+    names_template: "names_{forest}_{census}.txt"
+  censuses:
+    barro: [1, 2, 3, 4, 5, 6, 7, 8]
+    wanang: [1, 4]
+
+# Grid settings
+grid:
+  size: 500
+
+# Defaults for analysis
+analysis:
+  num_species: [50, 60,70,80]
+  resolutions: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
+
