@@ -17,15 +17,13 @@ senm_templates:
 
 # Real forest datasets
 forests:
-  list: ["barro", "wanang"]
+  name: ["barro"]
   templates: 
     path_template: "data/{forest}/"
     census_template: "{forest}_{census}.csv"
     abundance_template: "{forest}_abundances_{census}.csv"
     names_template: "names_{forest}_{census}.txt"
-  censuses:
-    barro: [1, 2, 3, 4, 5, 6, 7, 8]
-    wanang: [1, 4]
+  censuses: [1, 2, 3, 4, 5, 6, 7, 8]
 
 # Grid settings
 grid:
@@ -33,6 +31,6 @@ grid:
 
 # Defaults for analysis
 analysis:
-  num_species: [50]
+  num_species: [100]
   resolutions: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
