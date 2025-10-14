@@ -5,7 +5,7 @@ senm:
   nx: 500
   ny: 500
   kernel: "3"
-  nu: "1.500000e-04"
+  nu: "9.000000e-05"
   num_realizations: 100
   chosen_kernels: ["2", "3", "5"]
 
@@ -33,6 +33,6 @@ grid:
 
 # Defaults for analysis
 analysis:
-  num_species: [50, 60,70,80]
+  num_species: [50]
   resolutions: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
