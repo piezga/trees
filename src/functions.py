@@ -4,20 +4,25 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy.special import rel_entr
 from scipy.interpolate import interp1d
 from src.config import load_config
 
 
 config = load_config()
 
-# Extract global parameters
+# Extract SENM parameters
 nx = config['senm']['nx']
 ny = config['senm']['ny']
-nu = config['senm']['nu']         # YAML stores as string
+nu = config['senm']['nu']         
 kernel = config['senm']['kernel']
 NUM_REALIZATIONS = config['senm']['num_realizations']
-GRID_SIZE = config['grid']['size']
+
+# GRID
+forest_grid_width= config['grid']['forest']['width']
+forest_grid_height= config['grid']['forest']['height']
+senm_grid_width= config['grid']['senm']['width']
+senm_grid_height= config['grid']['senm']['height']
+
 
 # Templates
 senm_spatial_file_template = config['senm_templates']['spatial']
@@ -68,7 +73,6 @@ def load_forest_data(forest, census, num_species):
 
     # Filter DataFrame to only top species
     df = df[df['name'].isin(names)]
-
     return df, names
 
 def load_senm_data(nx, ny, nu, kernel, realization):
@@ -134,16 +138,26 @@ def shuffle_labels(df):
     df_randomized['name'] = np.random.permutation(df['name'])  # Shuffle labels
     return df_randomized
 
-def compute_abundance_matrix(num_species,df, n_bins_x, n_bins_y):
+def compute_abundance_matrix(num_species,df, n_bins_x, n_bins_y, data_type):
     """Compute species abundance matrix"""
-    
+   
+    if data_type == 'forest':
+        width = forest_grid_width
+        height = forest_grid_height
+    if data_type == 'senm':
+        width = senm_grid_width
+        height = senm_grid_height
+
+
+    species_col = 'species_id' if data_type == 'senm' else 'name'
+
     df = df.copy()
     
-    df['x_bin'] = (df['x'] / (GRID_SIZE / n_bins_x)).astype(int).clip(0, n_bins_x - 1)
-    df['y_bin'] = (df['y'] / (GRID_SIZE / n_bins_y)).astype(int).clip(0, n_bins_y - 1)
+    df['x_bin'] = (df['x'] / (width / n_bins_x)).astype(int).clip(0, n_bins_x - 1)
+    df['y_bin'] = (df['y'] / (height / n_bins_y)).astype(int).clip(0, n_bins_y - 1)
     
     abundance = np.zeros((num_species, n_bins_x * n_bins_y))
-    for i, (_, group) in enumerate(df.groupby('species_id')):
+    for i, (_, group) in enumerate(df.groupby(species_col)):
         bin_counts = group.groupby(['x_bin', 'y_bin']).size()
         for (x, y), count in bin_counts.items():
             abundance[i, x * n_bins_y + y] = count
@@ -157,7 +171,7 @@ def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y):
     for realization in range(NUM_REALIZATIONS):
         df = load_senm_data(nx, ny, nu, kernel, realization + 1)
         df_top_N = get_top_species(df,num_species) 
-        abundance = compute_abundance_matrix(num_species,df_top_N, n_bins_x, n_bins_y)
+        abundance = compute_abundance_matrix(num_species,df_top_N, n_bins_x, n_bins_y, data_type = 'senm')
         corr = np.nan_to_num(np.corrcoef(abundance), nan=0)
         eig_matrix[realization] = np.sort(np.linalg.eigvalsh(corr))[::-1]
     return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
@@ -286,4 +300,22 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max):
 
     return normalized_diff
 
+def load_file_with_padding(filename, N, num_columns):
+    try:
+        data = np.loadtxt(filename, max_rows=N)
 
+        # Handle edge case: single row results in 1D array
+        if data.ndim == 1:
+            data = np.expand_dims(data, axis=0)
+
+        current_N = data.shape[0]
+
+        # Pad if needed
+        if current_N < N:
+            padding = np.zeros((N - current_N, num_columns))
+            data = np.vstack((data, padding))
+
+        return data
+
+    except Exception as e:
+        raise RuntimeError(f"Failed to load or pad file '{filename}': {e}")
