@@ -19,6 +19,7 @@ senm_templates:
 forests:
   name: ["barro"]
   templates: 
+    raw_data_template: "bcitree{census}.dat"
     path_template: "data/{forest}/"
     census_template: "{forest}_{census}.csv"
     abundance_template: "{forest}_abundances_{census}.csv"
@@ -27,7 +28,12 @@ forests:
 
 # Grid settings
 grid:
-  size: 500
+  forest:
+    width: 1000
+    height: 500
+  senm:
+    width: 500
+    height: 500
 
 # Defaults for analysis
 analysis:

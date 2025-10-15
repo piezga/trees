@@ -1,103 +1,104 @@
-import numpy as np
 import pandas as pd
-import os
-import seaborn as sns
-import matplotlib
-matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
+import numpy as np
 import matplotlib.pyplot as plt
-
 from src.config import load_config
+from src.functions import load_file_with_padding
+
+# Load config
 config = load_config()
-from src.functions import *
 
-debug = True
+# Extract from config
+forest = config['forests']['name'][0]
+censuses = config['forests']['censuses']
+num_species = config['analysis']['num_species'][0]  # Only one value in list
+chosen_kernels = config['senm']['chosen_kernels']
+num_realizations = config['senm']['num_realizations']
+nu = config['senm']['nu']
+nx = config['senm']['nx']
+ny = config['senm']['ny']
 
-GRID_SIZE = config['grid']['size']
-forests = ['barro']
-num_species = config['analysis']['num_species']
-resolutions = range(3, 22, 1)
+# Templates
+path_template = config['forests']['templates']['path_template']
+abundance_template = config['forests']['templates']['abundance_template']
+senm_abundance_template = config['senm_templates']['abundance']
+simulations_path = config['senm_templates']['path']
 
-# Create the plot
-plt.figure(figsize=(10, 6))
+# =======================
+# Load empirical dataset
+# =======================
 
-for forest in forests:  
-    censuses = config['forests']['censuses'][f'{forest}']
-    
-    if debug:
-        print(f"Censuses are {censuses}")
+dataset = pd.DataFrame()
+path = path_template.format(forest=forest)
 
-    for num in num_species:
+for census in censuses:
+    abundance_file = path + abundance_template.format(forest=forest, census=census)
+    df = pd.read_csv(abundance_file)
 
-        senm_communities = []
-        empirical_communities = []
-        square_diffs = []
+    # Relative abundance
+    rel_values = df['count'] / df['count'].sum()
 
-        # Initialize dict to track individual square diffs per census
-        individual_square_differences = {census: [] for census in censuses}
+    # Build column per census
+    temp_df = pd.DataFrame({f'Census {census}': rel_values})
 
-        for resolution in resolutions:
+    # Merge
+    dataset = temp_df if dataset.empty else dataset.join(temp_df, how='outer')
 
-            n_bins_unrounded = GRID_SIZE / resolution
-            n_bins = int(n_bins_unrounded)
-            boxlen = resolution
-            boxlen_label = f"{int(round(resolution))}m"
+# Fill missing species with 0s
+dataset = dataset.fillna(0)
 
-            # Compute MP bounds
-            lambda_min, lambda_max = marchenko_pastur_bounds(num, n_bins, n_bins)
-            
-            # Compute SENM reference spectrum once per bin size
-            senm_mean, senm_std = compute_mean_senm_spectrum(num, n_bins, n_bins)
+# =======================
+# Load SENM simulations
+# =======================
 
-            forest_spectra = []
+senm = pd.DataFrame()
 
-            for census in censuses:
-                path = path_template.format(forest=forest)
-                os.makedirs(f"{path}plots", exist_ok=True)
+for kernel in chosen_kernels:
+    print(f'Processing kernel {kernel}...')
 
-                df, names = load_forest_data(forest, census, num)
+    mean_senm_abundances = np.zeros(num_species)
 
-                forest_spectrum = compute_forest_spectrum(df, names, n_bins, n_bins)
-                forest_spectra.append(forest_spectrum)
+    for realization in range(1, num_realizations + 1):
+        current_file = senm_abundance_template.format(
+            nx=nx, ny=ny, nu=nu, kernel=kernel, realization=realization
+        )
+        file_path = simulations_path + current_file
 
-                # Compute square difference for individual census
-                individual_square_diff = square_diff_above_MP(
-                    senm_mean, forest_spectrum, lambda_max
-                )
+        # Load abundance data with padding
+        abundances = load_file_with_padding(file_path, num_species, 2)[:, 1]
 
-                # Append to corresponding list in the dict
-                individual_square_differences[census].append(individual_square_diff)
+        # Sort in descending order
+        abundances = np.sort(abundances)[::-1]
 
-            # Mean empirical spectrum over censuses
-            mean_forest_spectrum = np.mean(np.array(forest_spectra), axis=0)
+        mean_senm_abundances += abundances
 
-            # Count eigenvalues above MP upper bound for SENM null model
-            senm_count = np.sum(senm_mean > lambda_max)
-            senm_communities.append(senm_count)
+    # Average and normalize
+    mean_senm_abundances /= num_realizations
+    relative_abundances = mean_senm_abundances / mean_senm_abundances.sum()
 
-            # Count eigenvalues above MP upper bound for empirical forest spectrum
-            forest_count = np.sum(mean_forest_spectrum > lambda_max)
-            empirical_communities.append(forest_count)
+    senm[f'Kernel {kernel}'] = relative_abundances
 
-            # Calculate square difference between mean SENM and mean forest
-            square_diff = square_diff_above_MP(senm_mean, mean_forest_spectrum, lambda_max)
-            square_diffs.append(square_diff)
+# =======================
+# Plotting
+# =======================
 
-        # Plot square difference per census (line across resolutions)
-        for census in censuses:
-            plt.plot(
-                list(resolutions),
-                individual_square_differences[census],
-                'o--',
-                label=f"{forest}-{num}-{census}"
-            )
+fig, ax = plt.subplots(figsize=(12, 7))
 
-# Final plot setup
-plt.xlabel('Length', fontsize=12)
-plt.ylabel('Square difference > λ_max', fontsize=12)
-plt.title('Square difference of Significant Eigenvalues', fontsize=14)
-plt.legend(fontsize=9, loc='best')
-plt.grid(True, alpha=0.3)
+# Plot a couple of censuses from dataset
+selected_censuses = ['Census 1', 'Census 4']  # Adjust if needed
+dataset[selected_censuses].plot(logy=True, style='o', markersize=5,
+                                ax=ax, label=selected_censuses,
+                                color=['blue', 'green'])
+
+# Plot SENM
+senm.plot(logy=True, style='.', markersize=4,
+          ax=ax, label=senm.columns,
+          color=['red', 'purple', 'orange'])
+
+# Customize
+ax.set_ylabel('Relative abundance (log scale)')
+ax.set_xlabel('Species rank')
+ax.set_title('Empirical vs Modeled Species Abundance Distributions')
+ax.legend(fontsize=12)
 plt.tight_layout()
-plt.show(block=True)
-plt.close()
+plt.show()
 
