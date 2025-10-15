@@ -13,3 +13,6 @@ Riguardo a wanang e agli alberi non etichettati, provo a proporvi un'argomentazi
 
 Assumendo che gli alberi "unknown" siano distribuiti con la stessa distribuzione di quelli etichettati (magari sono ancora giovani e difficili da distinguere), rimuovere una porzione significativa di alberi (40%) equivale a riscalare le distanze, perché rende gli alberi artificialmente più distanti tra di loro. Questo potrebbe spiegare il fatto che il minimo della curva si trovi a distanze molto più piccole rispetto a barro: i 9-10 metri sono in realtà 13-14.
 
+## 14/10/25
+
+Il notebook è pieno di import strani. È più semplice fare dei moduli nella cartella locale.
