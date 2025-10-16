@@ -7,121 +7,124 @@ from src.config import load_config
 from src.functions import *
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-# Load config
+# === Load config ===
 config = load_config()
 
-# SENM parameters
+# === Parameters ===
 nx = config['senm']['nx']
 ny = config['senm']['ny']
-nu = config['senm']['nu']         
+nu = config['senm']['nu']
 kernel = config['senm']['kernel']
 NUM_REALIZATIONS = config['senm']['num_realizations']
 
-# GRID
 forest_grid_width = config['grid']['forest']['width']
 forest_grid_height = config['grid']['forest']['height']
 senm_grid_width = config['grid']['senm']['width']
 senm_grid_height = config['grid']['senm']['height']
 
-# Templates
 senm_spatial_file_template = config['senm_templates']['spatial']
 simulations_path = config['senm_templates']['path']
 path_template = config['forests']['templates']['path_template']
 census_template = config['forests']['templates']['census_template']
 names_template = config['forests']['templates']['names_template']
 
-# Other variables
 forest = 'barro'
 num_species = config['analysis']['num_species']
-resolutions = [50, 5]  # Main plot: 50, Inset: 5
 censuses = config['forests']['censuses']
-num = 100  # Number of species for spectrum
-
+resolutions = [50, 5]
+num = 100
 verbose = True
 
-# Setup plot
-sns.set(style="whitegrid", font_scale=1.2, rc={"axes.labelweight": "bold"})
-fig, ax = plt.subplots(figsize=(10, 6))
-x = np.arange(1, num + 1)
-colors = sns.color_palette("colorblind", n_colors=2)
-
-# Function to compute both spectra at a given resolution
+# === Compute spectra ===
 def compute_spectra(resolution):
-    if verbose: print(f'Computing for resolution = {resolution} m')
+    if verbose:
+        print(f'Computing for resolution = {resolution} m')
     
     n_bins_x = int(forest_grid_width / resolution)
     n_bins_y = int(forest_grid_height / resolution)
     n_bins_x_senm = int(senm_grid_width / resolution)
     n_bins_y_senm = int(senm_grid_height / resolution)
 
-    # === SENM spectrum ===
     senm_mean, senm_std = compute_mean_senm_spectrum(num, n_bins_x_senm, n_bins_y_senm)
 
-    # === Forest spectra ===
     forest_spectra = []
     for census in censuses:
         path = path_template.format(forest=forest)
         os.makedirs(f"{path}plots", exist_ok=True)
-
         df, names = load_forest_data(forest, census, num)
-        forest_spectrum = compute_forest_spectrum(df, names, n_bins_x, n_bins_y)
-        forest_spectra.append(forest_spectrum)
+        spectrum = compute_forest_spectrum(df, names, n_bins_x, n_bins_y)
+        forest_spectra.append(spectrum)
 
-    forest_array = np.array(forest_spectra)
-    mean_forest_spectrum = np.mean(forest_array, axis=0)
-    std_forest_spectrum = np.std(forest_array, axis=0)
+    return senm_mean, senm_std, forest_spectra
 
-    return senm_mean, mean_forest_spectrum, senm_std, std_forest_spectrum
+# === Setup style ===
+plt.rcParams.update({
+    "font.size": 20,
+    "axes.labelsize": 24,
+    "axes.titlesize": 24,
+    "xtick.labelsize": 12,
+    "ytick.labelsize": 12,
+    "legend.fontsize": 18,
+    "lines.linewidth": 2,
+    "lines.markersize": 6,
+    "axes.linewidth": 1.2
+})
 
-# === MAIN PLOT: RESOLUTION 50 ===
-res_50_senm, res_50_forest, res_50_senm_std, res_50_forest_std = compute_spectra(50)
+# === Create subplot mosaic ===
+fig, ax_dict = plt.subplot_mosaic("AB", figsize=(14, 6))
+x = np.arange(1, num + 1)
+colors = sns.color_palette("colorblind", n_colors=2)
 
-ax.errorbar(
-    x, res_50_senm, yerr=res_50_senm_std,
-    fmt='o--', color=colors[0], label='SENM (50 m)', markersize=5
-)
-ax.errorbar(
-    x, res_50_forest, yerr=res_50_forest_std,
-    fmt='o-', color=colors[0], label='Forest (50 m)', markersize=5
-)
+# === Panel A: Spectra Plot ===
+ax = ax_dict["A"]
+
+res_50_senm, res_50_senm_std, res_50_forest_list = compute_spectra(50)
+ax.plot(x, res_50_senm, 'o--', color=colors[0], label='SENM (50 m)')
+ax.fill_between(x, res_50_senm - res_50_senm_std, res_50_senm + res_50_senm_std,
+                color=colors[0], alpha=0.25)
+
+for spectrum in res_50_forest_list:
+    ax.plot(x, spectrum, 'o-', color=colors[0], alpha=0.5, markerfacecolor='white')
+
+res_5_senm, res_5_senm_std, res_5_forest_list = compute_spectra(5)
+axins = inset_axes(ax, width="45%", height="45%", loc='lower left', borderpad=2)
+axins.plot(x, res_5_senm, 'o--', color=colors[1], label='SENM (5 m)')
+axins.fill_between(x, res_5_senm - res_5_senm_std, res_5_senm + res_5_senm_std,
+                   color=colors[1], alpha=0.25)
+
+for spectrum in res_5_forest_list:
+    axins.plot(x, spectrum, 'o-', color=colors[1], alpha=0.5, markerfacecolor='white')
 
 ax.set_xscale('log')
 ax.set_yscale('log')
-ax.set_xlabel('Eigenvalue Rank', weight='bold')
-ax.set_ylabel('Eigenvalue Magnitude', weight='bold')
-ax.set_title('Figure 1.a - SENM vs Forest Spectra', weight='bold', fontsize=14)
-ax.legend(frameon=True)
-ax.grid(True, which="both", linestyle='--', alpha=0.6)
-
-# === INSET PLOT: RESOLUTION 5 ===
-res_5_senm, res_5_forest, res_5_senm_std, res_5_forest_std = compute_spectra(5)
-
-axins = inset_axes(ax, width="45%", height="45%", loc='lower left', borderpad=2)
-
-axins.errorbar(
-    x, res_5_senm, yerr=res_5_senm_std,
-    fmt='o--', color=colors[1], label='SENM (5 m)', markersize=3
-)
-axins.errorbar(
-    x, res_5_forest, yerr=res_5_forest_std,
-    fmt='o-', color=colors[1], label='Forest (5 m)', markersize=3
-)
+ax.set_xlim(1, num)
+ax.set_xlabel(r'$\lambda$ rank')
+ax.set_ylabel(r'$\lambda$')
+ax.grid(True, which="both", linestyle='--', alpha=0.5)
+axins.grid(True, linestyle='--', alpha = 0.5)
 axins.set_xscale('log')
 axins.set_yscale('log')
 axins.set_xlim(1, num)
-axins.set_ylim(
-    min(min(res_5_senm - res_5_senm_std), min(res_5_forest - res_5_forest_std)),
-    max(max(res_5_senm + res_5_senm_std), max(res_5_forest + res_5_forest_std))
-)
+axins.set_ylim(0.5, max(np.max(res_5_senm + res_5_senm_std),
+                        max(np.max(spectrum) for spectrum in res_5_forest_list)))
+axins.set_title('5 m', fontsize=14, pad=4)
 axins.tick_params(labelsize=8)
-axins.grid(True, which="both", linestyle='--', alpha=0.4)
-axins.set_title('5 m', fontsize=10, pad=2)
 
-# === Finalize and Save ===
+ax.text(-0.12, 1.05, '(a)', transform=ax.transAxes, fontsize=24, weight='bold')
+
+# === Panel B: Mock Sine Plot ===
+ax_b = ax_dict["B"]
+x_mock = np.array([1, 2, 3, 4])
+y_mock = np.sin(x_mock)
+ax_b.plot(x_mock, y_mock, 'o-', label='Mock sine')
+
+ax_b.set_title("Mock Plot")
+ax_b.set_xlabel("x")
+ax_b.set_ylabel("sin(x)")
+ax_b.grid(True)
+ax_b.text(-0.12, 1.05, '(b)', transform=ax_b.transAxes, fontsize=24, weight='bold')
+
+# === Finalize ===
 plt.tight_layout()
-#output_path = f"{path}plots/figure_1a.png"
-#plt.savefig(output_path, dpi=300)
 plt.show()
-
-#print(f"Saved Figure 1.a to: {output_path}")
 
