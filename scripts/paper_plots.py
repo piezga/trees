@@ -33,7 +33,7 @@ names_template = config['forests']['templates']['names_template']
 # Other variables
 forest = 'barro'
 num_species = config['analysis']['num_species']
-resolutions = [6,29]
+resolutions = [5,50]
 censuses = config['forests']['censuses']
 num = 100 # Number of species for plot 1
 
