@@ -6,9 +6,6 @@ import seaborn as sns
 from src.config import load_config
 from src.functions import *
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import matplotlib
-matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
-
 
 # === Load config ===
 config = load_config()
@@ -34,6 +31,7 @@ names_template = config['forests']['templates']['names_template']
 forest = 'barro'
 num_species = config['analysis']['num_species']
 censuses = config['forests']['censuses']
+resolutions = range(3,5,1)
 num = 100
 verbose = True
 
@@ -46,8 +44,6 @@ def compute_spectra(resolution):
     n_bins_y = int(forest_grid_height / resolution)
     n_bins_x_senm = int(senm_grid_width / resolution)
     n_bins_y_senm = int(senm_grid_height / resolution)
-    
-    bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
 
     senm_mean, senm_std = compute_mean_senm_spectrum(num, n_bins_x_senm, n_bins_y_senm)
 
@@ -59,7 +55,7 @@ def compute_spectra(resolution):
         spectrum = compute_forest_spectrum(df, names, n_bins_x, n_bins_y)
         forest_spectra.append(spectrum)
 
-    return senm_mean, senm_std, forest_spectra, bins
+    return senm_mean, senm_std, forest_spectra
 
 # === Setup style ===
 plt.rcParams.update({
@@ -77,12 +73,12 @@ plt.rcParams.update({
 # === Create subplot mosaic ===
 fig, ax_dict = plt.subplot_mosaic("AB", figsize=(14, 6))
 x = np.arange(1, num + 1)
-colors = sns.color_palette("muted", n_colors=2)
+colors = sns.color_palette("colorblind", n_colors=2)
 
 # === Panel A: Spectra Plot ===
 ax = ax_dict["A"]
 
-res_50_senm, res_50_senm_std, res_50_forest_list, _ = compute_spectra(50)
+res_50_senm, res_50_senm_std, res_50_forest_list = compute_spectra(50)
 ax.plot(x, res_50_senm, 'o--', color=colors[0], label='SENM (50 m)')
 ax.fill_between(x, res_50_senm - res_50_senm_std, res_50_senm + res_50_senm_std,
                 color=colors[0], alpha=0.25)
@@ -90,7 +86,7 @@ ax.fill_between(x, res_50_senm - res_50_senm_std, res_50_senm + res_50_senm_std,
 for spectrum in res_50_forest_list:
     ax.plot(x, spectrum, 'o-', color=colors[0], alpha=0.5, markerfacecolor='white')
 
-res_5_senm, res_5_senm_std, res_5_forest_list, _ = compute_spectra(5)
+res_5_senm, res_5_senm_std, res_5_forest_list = compute_spectra(5)
 axins = inset_axes(ax, width="45%", height="45%", loc='lower left', borderpad=2)
 axins.plot(x, res_5_senm, 'o--', color=colors[1], label='SENM (5 m)')
 axins.fill_between(x, res_5_senm - res_5_senm_std, res_5_senm + res_5_senm_std,
@@ -101,8 +97,7 @@ for spectrum in res_5_forest_list:
 
 ax.set_xscale('log')
 ax.set_yscale('log')
-ax.set_xlim(1, 90)
-ax.set_ylim(1e-3,100)
+ax.set_xlim(1, num)
 ax.set_xlabel(r'$\lambda$ rank')
 ax.set_ylabel(r'$\lambda$')
 ax.grid(True, which="both", linestyle='--', alpha=0.5)
@@ -117,55 +112,16 @@ axins.tick_params(labelsize=8)
 
 ax.text(-0.12, 1.05, '(a)', transform=ax.transAxes, fontsize=24, weight='bold')
 
-# === Panel B: Size effect ===
+# === Panel B: Mock Sine Plot ===
 ax_b = ax_dict["B"]
-resolutions = list(range(3, 22, 1))
-x = resolutions
+x_mock = np.array([1, 2, 3, 4])
+y_mock = np.sin(x_mock)
+ax_b.plot(x_mock, y_mock, 'o-', label='Mock sine')
 
-colors_b = sns.color_palette("colorblind", n_colors=len(num_species))
-
-for idx, num in enumerate(num_species):
-    
-    if verbose:
-        print(f'Num species: {num} out of {num_species}')
-
-    senm_communities = []
-    empirical_communities = []
-    square_diffs = []
-
-    for resolution in resolutions:
-        senm_spectrum, _, forest_spectra, bins = compute_spectra(resolution)
-
-        if verbose:
-            print(f'Bins array is: {bins}')
-
-        mean_forest_spectrum = np.mean(np.array(forest_spectra), axis=0)
-        
-        if verbose:
-            print(f'SENM spectrum shape: {np.shape(senm_spectrum)}')
-            print(f'Forest spectrum shape: {np.shape(mean_forest_spectrum)}')
-
-        _, lambda_max_forest = marchenko_pastur_bounds(num, bins[2], bins[3])
-
-        square_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, lambda_max_forest)
-        square_diffs.append(square_diff)
-
-    # Plot with assigned color and consistent marker style
-    ax_b.plot(
-        x,
-        square_diffs,
-        'o--',
-        label=f"S = {num}",
-        color=colors_b[idx],
-        markerfacecolor='white'
-    )
-
-ax_b.set_xlabel("Resolution (m)")
-ax_b.set_ylabel(r"$D^2(>\lambda_{\max})$")
-ax_b.grid(True, linestyle='--', alpha=0.5)
-ax_b.legend(fontsize=12, loc='best', frameon=False)
-
-# Add panel label
+ax_b.set_title("Mock Plot")
+ax_b.set_xlabel("x")
+ax_b.set_ylabel("sin(x)")
+ax_b.grid(True)
 ax_b.text(-0.12, 1.05, '(b)', transform=ax_b.transAxes, fontsize=24, weight='bold')
 
 # === Finalize ===

@@ -15,7 +15,7 @@ debug = True
 GRID_SIZE = config['grid']['size']
 forests = ['barro']
 num_species = config['analysis']['num_species']
-resolutions = range(3, 22, 1)
+resolutions = range(3, 5, 1)
 
 # Create the plot
 plt.figure(figsize=(10, 6))
