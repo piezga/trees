@@ -36,6 +36,8 @@ num_species = config['analysis']['num_species']
 censuses = config['forests']['censuses']
 num = 100
 verbose = True
+calculate = False
+print(f'Calculate set to {calculate}')
 
 # === Compute spectra ===
 def compute_spectra(resolution):
@@ -82,7 +84,14 @@ colors = sns.color_palette("muted", n_colors=2)
 # === Panel A: Spectra Plot ===
 ax = ax_dict["A"]
 
-res_50_senm, res_50_senm_std, res_50_forest_list, _ = compute_spectra(50)
+if calculate:
+    res_50_senm, res_50_senm_std, res_50_forest_list, _ = compute_spectra(50)
+    np.save(f'quantities/barro_senm_std_{num}_50.npy', res_50_senm_std)
+else: 
+    res_50_senm = np.load(f'quantities/{forest}_senm_spectrum_{num}_50.npy')
+    res_50_senm_std = np.load(f'quantities/{forest}_senm_std_{num}_50.npy')
+    res_50_forest_list= np.load(f'quantities/{forest}_forest_spectra_{num}_50.npy')
+
 ax.plot(x, res_50_senm, 'o--', color=colors[0], label='SENM (50 m)')
 ax.fill_between(x, res_50_senm - res_50_senm_std, res_50_senm + res_50_senm_std,
                 color=colors[0], alpha=0.25)
@@ -90,7 +99,15 @@ ax.fill_between(x, res_50_senm - res_50_senm_std, res_50_senm + res_50_senm_std,
 for spectrum in res_50_forest_list:
     ax.plot(x, spectrum, 'o-', color=colors[0], alpha=0.5, markerfacecolor='white')
 
-res_5_senm, res_5_senm_std, res_5_forest_list, _ = compute_spectra(5)
+if calculate:
+    res_5_senm, res_5_senm_std, res_5_forest_list, _ = compute_spectra(5)
+    np.save(f'quantities/barro_senm_std_{num}_5.npy', res_5_senm_std)
+else: 
+    res_5_senm = np.load(f'quantities/{forest}_senm_spectrum_{num}_5.npy')
+    res_5_senm_std = np.load(f'quantities/{forest}_senm_std_{num}_5.npy')
+    res_5_forest_list= np.load(f'quantities/{forest}_forest_spectra_{num}_5.npy')
+
+
 axins = inset_axes(ax, width="45%", height="45%", loc='lower left', borderpad=2)
 axins.plot(x, res_5_senm, 'o--', color=colors[1], label='SENM (5 m)')
 axins.fill_between(x, res_5_senm - res_5_senm_std, res_5_senm + res_5_senm_std,
@@ -134,8 +151,16 @@ for idx, num in enumerate(num_species):
     square_diffs = []
 
     for resolution in resolutions:
-        senm_spectrum, _, forest_spectra, bins = compute_spectra(resolution)
-
+        
+        if calculate:
+            senm_spectrum, _, forest_spectra, bins = compute_spectra(resolution)
+            np.save(f'quantities/{forest}_senm_spectrum_{num}_{resolution}.npy',senm_spectrum)
+            np.save(f'quantities/{forest}_forest_spectra_{num}_{resolution}.npy', forest_spectra)
+            np.save(f'quantities/{forest}_bins_{num}_{resolution}.npy', bins)
+        else:
+            senm_spectrum = np.load(f'quantities/{forest}_senm_spectrum_{num}_{resolution}.npy')
+            forest_spectra = np.load(f'quantities/{forest}_forest_spectra_{num}_{resolution}.npy')
+            bins = np.load(f'quantities/{forest}_bins_{num}_{resolution}.npy')
         if verbose:
             print(f'Bins array is: {bins}')
 
@@ -146,8 +171,8 @@ for idx, num in enumerate(num_species):
             print(f'Forest spectrum shape: {np.shape(mean_forest_spectrum)}')
 
         _, lambda_max_forest = marchenko_pastur_bounds(num, bins[2], bins[3])
-
-        square_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, lambda_max_forest)
+        _, lambda_max_senm = marchenko_pastur_bounds(num, bins[0], bins[1])
+        square_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, lambda_max_senm, lambda_max_forest)
         square_diffs.append(square_diff)
 
     # Plot with assigned color and consistent marker style
@@ -155,7 +180,7 @@ for idx, num in enumerate(num_species):
         x,
         square_diffs,
         'o--',
-        label=f"S = {num}",
+        label=f"N = {num}",
         color=colors_b[idx],
         markerfacecolor='white'
     )
