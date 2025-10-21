@@ -264,7 +264,7 @@ def square_difference(spectrum1, spectrum2):
 
 
 
-def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max):
+def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     """
     Calculate the squared difference of all eigenvalues above lambda_max
     between two spectra.
@@ -277,8 +277,8 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max):
     squared_difference: sum of squared differences for eigenvalues > lambda_max
     """
     # Get eigenvalues above lambda_max from both spectra
-    eigenvalues_A_above = spectrum_A[spectrum_A > lambda_max]
-    eigenvalues_B_above = spectrum_B[spectrum_B > lambda_max]
+    eigenvalues_A_above = spectrum_A[spectrum_A > lambda_max_A]
+    eigenvalues_B_above = spectrum_B[spectrum_B > lambda_max_B]
 
     # Make sure we have the same number of eigenvalues above threshold
     min_length = min(len(eigenvalues_A_above), len(eigenvalues_B_above))
