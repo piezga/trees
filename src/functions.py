@@ -295,7 +295,8 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     print(eigenvalues_A_above)
     print(eigenvalues_B_above)
     # Calculate relative squared difference
-    squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)
+    length= len(eigenvalues_A_above)
+    squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)/length
 
     return squared_diff
 
