@@ -276,29 +276,28 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     Returns:
     squared_difference: sum of squared differences for eigenvalues > lambda_max
     """
+    debug = True
+     
+    max_lambda = max(lambda_max_A, lambda_max_B)
     # Get eigenvalues above lambda_max from both spectra
-    eigenvalues_A_above = spectrum_A[spectrum_A > lambda_max_A]
-    eigenvalues_B_above = spectrum_B[spectrum_B > lambda_max_B]
-
+    eigenvalues_A_above = spectrum_A[spectrum_A > max_lambda]
+    eigenvalues_B_above = spectrum_B[spectrum_B > max_lambda]
+    
     # Make sure we have the same number of eigenvalues above threshold
     min_length = min(len(eigenvalues_A_above), len(eigenvalues_B_above))
-
     if min_length == 0:
+        print('No eigenvalues above threshold!')
         return 0  # No eigenvalues above threshold
 
-    # Take the first min_length eigenvalues from both arrays
+    # Take the first min_length eigenvalues from both arrays and normalize
     eigenvalues_A_above = eigenvalues_A_above[:min_length]
     eigenvalues_B_above = eigenvalues_B_above[:min_length]
-
+    print(eigenvalues_A_above)
+    print(eigenvalues_B_above)
     # Calculate relative squared difference
     squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)
-    magnitude_A = np.sum(eigenvalues_A_above ** 2)
-    magnitude_B = np.sum(eigenvalues_B_above ** 2)
-    
-    # Normalize by average magnitude
-    normalized_diff = squared_diff / ((magnitude_A + magnitude_B) / 2)
 
-    return normalized_diff
+    return squared_diff
 
 def load_file_with_padding(filename, N, num_columns):
     try:

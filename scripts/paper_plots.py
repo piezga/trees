@@ -93,6 +93,7 @@ else:
     res_50_forest_list= np.load(f'quantities/{forest}_forest_spectra_{num}_50.npy')
 
 ax.plot(x, res_50_senm, 'o--', color=colors[0], label='SENM (50 m)')
+ax.set_title('50 m', fontsize = 22, pad = 4)
 ax.fill_between(x, res_50_senm - res_50_senm_std, res_50_senm + res_50_senm_std,
                 color=colors[0], alpha=0.25)
 
@@ -129,14 +130,14 @@ axins.set_yscale('log')
 axins.set_xlim(1, num)
 axins.set_ylim(0.5, max(np.max(res_5_senm + res_5_senm_std),
                         max(np.max(spectrum) for spectrum in res_5_forest_list)))
-axins.set_title('5 m', fontsize=14, pad=4)
+axins.set_title('5 m', fontsize=18, pad=4)
 axins.tick_params(labelsize=8)
 
 ax.text(-0.12, 1.05, '(a)', transform=ax.transAxes, fontsize=24, weight='bold')
 
 # === Panel B: Size effect ===
 ax_b = ax_dict["B"]
-resolutions = list(range(3, 22, 1))
+resolutions = list(range(4, 50, 1))
 x = resolutions
 
 colors_b = sns.color_palette("colorblind", n_colors=len(num_species))
@@ -162,7 +163,8 @@ for idx, num in enumerate(num_species):
             forest_spectra = np.load(f'quantities/{forest}_forest_spectra_{num}_{resolution}.npy')
             bins = np.load(f'quantities/{forest}_bins_{num}_{resolution}.npy')
         if verbose:
-            print(f'Bins array is: {bins}')
+            print(f'\nBins array is: {bins}')
+            print(f'Resolution is {resolution}')
 
         mean_forest_spectrum = np.mean(np.array(forest_spectra), axis=0)
         
@@ -172,8 +174,43 @@ for idx, num in enumerate(num_species):
 
         _, lambda_max_forest = marchenko_pastur_bounds(num, bins[2], bins[3])
         _, lambda_max_senm = marchenko_pastur_bounds(num, bins[0], bins[1])
+        if verbose:
+            print(f'Max forest eigenvalue is {lambda_max_forest}')
+            print(f'Max senm eigenvalue is {lambda_max_senm}')
         square_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, lambda_max_senm, lambda_max_forest)
         square_diffs.append(square_diff)
+
+        # Plot and save figure
+        plt.figure(figsize=(12, 7))
+
+        # Set global font and line styles
+        plt.rcParams.update({
+            'font.size': 14,
+            'font.weight': 'bold',
+            'axes.labelweight': 'bold',
+            'axes.titlesize': 16,
+            'axes.titleweight': 'bold',
+            'lines.linewidth': 2.5,
+            'lines.markersize': 8
+        })
+        
+        x_spectra = np.arange(1, num + 1)
+        plot_spectra = [mean_forest_spectrum, senm_spectrum]
+        labels = ['Forest', 'SENM']
+        for i in range(len(plot_spectra)):
+            plt.loglog(x_spectra, plot_spectra[i], 'o-', label = labels[i])
+        
+        plt.title(f'{resolution} m')
+        plt.grid(True, alpha = 0.5)
+        plt.axhline(lambda_max_forest,label = 'MP Forest')
+        plt.axhline(lambda_max_senm, color = 'orange', label = 'MP SENM')
+        plt.legend()
+        plt.ylim(1e-2,1e2)
+        filename = f'spectra/{num}_species_resolution_{resolution}.png'
+        plt.savefig(filename)
+        if verbose: print(f'Saved spectra to {filename}')
+        plt.close()
+       
 
     # Plot with assigned color and consistent marker style
     ax_b.plot(
@@ -182,13 +219,14 @@ for idx, num in enumerate(num_species):
         'o--',
         label=f"N = {num}",
         color=colors_b[idx],
-        markerfacecolor='white'
+        markerfacecolor='white',
+        linewidth = '2'
     )
 
 ax_b.set_xlabel("Resolution (m)")
 ax_b.set_ylabel(r"$D^2(>\lambda_{\max})$")
 ax_b.grid(True, linestyle='--', alpha=0.5)
-ax_b.legend(fontsize=12, loc='best', frameon=False)
+ax_b.legend(fontsize=22, loc='best', frameon=False)
 
 # Add panel label
 ax_b.text(-0.12, 1.05, '(b)', transform=ax_b.transAxes, fontsize=24, weight='bold')
