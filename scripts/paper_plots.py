@@ -36,7 +36,7 @@ num_species = config['analysis']['num_species']
 censuses = config['forests']['censuses']
 num = 100
 verbose = True
-calculate = False
+calculate = True
 print(f'Calculate set to {calculate}')
 
 # === Compute spectra ===
@@ -155,9 +155,17 @@ for idx, num in enumerate(num_species):
         
         if calculate:
             senm_spectrum, _, forest_spectra, bins = compute_spectra(resolution)
-            np.save(f'quantities/{forest}_senm_spectrum_{num}_{resolution}.npy',senm_spectrum)
-            np.save(f'quantities/{forest}_forest_spectra_{num}_{resolution}.npy', forest_spectra)
+            np.save(f'quantities/{forest}_senm_spectrum_{num}_{resolution}.npy',
+                    senm_spectrum)
+            np.save(f'quantities/{forest}_forest_spectra_{num}_{resolution}.npy', 
+                    forest_spectra)
             np.save(f'quantities/{forest}_bins_{num}_{resolution}.npy', bins)
+            
+            np.savetxt(f'quantities/{forest}_senm_spectrum_{num}_{resolution}.txt', 
+                       senm_spectrum)
+            np.savetxt(f'quantities/{forest}_forest_spectra_{num}_{resolution}.txt', 
+                       forest_spectra)
+            np.savetxt(f'quantities/{forest}_bins_{num}_{resolution}.txt', bins)
         else:
             senm_spectrum = np.load(f'quantities/{forest}_senm_spectrum_{num}_{resolution}.npy')
             forest_spectra = np.load(f'quantities/{forest}_forest_spectra_{num}_{resolution}.npy')
@@ -174,10 +182,18 @@ for idx, num in enumerate(num_species):
 
         _, lambda_max_forest = marchenko_pastur_bounds(num, bins[2], bins[3])
         _, lambda_max_senm = marchenko_pastur_bounds(num, bins[0], bins[1])
+ 
         if verbose:
             print(f'Max forest eigenvalue is {lambda_max_forest}')
             print(f'Max senm eigenvalue is {lambda_max_senm}')
-        square_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, lambda_max_senm, lambda_max_forest)
+
+        if calculate: 
+            np.savetxt(f'quantities/{forest}_forest_MPmax_{num}_{resolution}.txt', 
+                       [lambda_max_forest])
+            np.savetxt(f'quantities/{forest}_senm_MPmax_{num}_{resolution}.txt', 
+                       [lambda_max_senm])
+        square_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, 
+                                           lambda_max_senm, lambda_max_forest)
         square_diffs.append(square_diff)
 
         # Plot and save figure
