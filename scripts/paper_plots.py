@@ -7,6 +7,14 @@ from src.config import load_config
 from src.functions import *
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib
+import matplotlib.colors as mcolors
+import cmocean
+import networkx as nx
+from scipy.linalg import expm
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
+from scipy.spatial.distance import squareform
+import matplotlib.patches as patches
+
 matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
 
 
@@ -14,8 +22,8 @@ matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
 config = load_config()
 
 # === Parameters ===
-nx = config['senm']['nx']
-ny = config['senm']['ny']
+Nx = config['senm']['nx']
+Ny = config['senm']['ny']
 nu = config['senm']['nu']
 kernel = config['senm']['kernel']
 NUM_REALIZATIONS = config['senm']['num_realizations']
@@ -30,14 +38,18 @@ simulations_path = config['senm_templates']['path']
 path_template = config['forests']['templates']['path_template']
 census_template = config['forests']['templates']['census_template']
 names_template = config['forests']['templates']['names_template']
-
 forest = 'barro'
 num_species = config['analysis']['num_species']
 censuses = config['forests']['censuses']
+
+# Some parameters
 num = 100
 verbose = True
-calculate = True
+calculate = False
 print(f'Calculate set to {calculate}')
+filter_resolution = 10
+
+
 
 # === Compute spectra ===
 def compute_spectra(resolution):
@@ -51,17 +63,19 @@ def compute_spectra(resolution):
     
     bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
 
-    senm_mean, senm_std = compute_mean_senm_spectrum(num, n_bins_x_senm, n_bins_y_senm, standardize=True)
+    senm_mean, senm_std, senm_abundance = compute_mean_senm_spectrum(num, n_bins_x_senm, n_bins_y_senm, standardize=True)
 
     forest_spectra = []
     for census in censuses:
         path = path_template.format(forest=forest)
         os.makedirs(f"{path}plots", exist_ok=True)
         df, names = load_forest_data(forest, census, num)
-        spectrum = compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize = True)
+        spectrum, forest_abundance = compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize = True)
         forest_spectra.append(spectrum)
 
-    return senm_mean, senm_std, forest_spectra, bins
+    return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundance
+
+
 
 # === Setup style ===
 plt.rcParams.update({
@@ -137,7 +151,7 @@ ax.text(-0.12, 1.05, '(a)', transform=ax.transAxes, fontsize=24, weight='bold')
 
 # === Panel B: Size effect ===
 ax_b = ax_dict["B"]
-resolutions = list(range(4, 50, 1))
+resolutions = list(range(4, 5, 1))
 x = resolutions
 
 colors_b = sns.color_palette("colorblind", n_colors=len(num_species))
@@ -285,3 +299,141 @@ ax_b.text(-0.12, 1.05, '(b)', transform=ax_b.transAxes, fontsize=24, weight='bol
 plt.tight_layout()
 plt.show()
 
+# === New plot: correlation matrix with filter ===
+
+_, _, _, bins, senm_abundance, forest_abundance = compute_spectra(filter_resolution)
+
+senm_corr = np.corrcoef(senm_abundance)
+forest_corr = np.corrcoef(forest_abundance)
+filtered_senm_corr = MarchenkoPastur(senm_corr, num, bins[0]*bins[1], remove_largest=False)
+filtered_forest_corr = MarchenkoPastur(forest_corr, num, bins[2]*bins[3], remove_largest=False)
+
+
+
+# Colormap and normalization centered at zero
+cmap = cmocean.cm.balance
+vmin, vmax = -0.5, 0.5
+norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+
+# === Plot SENM correlation matrices ===
+fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
+
+im0 = axes[0].imshow(senm_corr, cmap=cmap, norm=norm)
+axes[0].set_title("SENM – Unfiltered Correlation")
+axes[0].set_xlabel("Species index")
+axes[0].set_ylabel("Species index")
+
+im1 = axes[1].imshow(filtered_senm_corr, cmap=cmap, norm=norm)
+axes[1].set_title("SENM – Filtered (Marchenko–Pastur)")
+axes[1].set_xlabel("Species index")
+axes[1].set_ylabel("Species index")
+
+fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, pad=0.04, label="Correlation")
+fig.suptitle("SENM Correlation Matrices", fontsize=14, weight="bold")
+plt.show()
+
+
+# ===  Plot Forest correlation matrices ===
+fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
+
+im0 = axes[0].imshow(forest_corr, cmap=cmap, norm=norm)
+axes[0].set_title("Forest – Unfiltered Correlation")
+axes[0].set_xlabel("Species index")
+axes[0].set_ylabel("Species index")
+
+im1 = axes[1].imshow(filtered_forest_corr, cmap=cmap, norm=norm)
+axes[1].set_title("Forest – Filtered (Marchenko–Pastur)")
+axes[1].set_xlabel("Species index")
+axes[1].set_ylabel("Species index")
+
+fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, pad=0.04, label="Correlation")
+fig.suptitle("Forest Correlation Matrices", fontsize=14, weight="bold")
+plt.show()
+
+# === Helper function for community detection ===
+def detect_communities(corr_matrix, tau=1e-3, Th=1e-4):
+    """Detect communities from filtered correlation matrix using Laplacian diffusion clustering."""
+    corr_pos = np.copy(corr_matrix)
+    corr_pos[corr_pos < 0] = 0  # only positive correlations
+
+    # Build graph and Laplacian
+    G = nx.from_numpy_array(np.abs(corr_pos))
+    G.remove_edges_from(nx.selfloop_edges(G))
+    L = nx.laplacian_matrix(G).todense()
+
+    # Diffusion process
+    num = expm(-tau * L)
+    rho = num / np.trace(num)
+
+    # Symmetric distance matrix
+    Trho = np.copy(1.0 / rho)
+    Trho = np.tril(Trho) + np.triu(Trho.T, 1)
+    np.fill_diagonal(Trho, 0)
+
+    # Hierarchical clustering
+    dists = squareform(Trho)
+    linkage_matrix = linkage(dists, "complete")
+    linkage_matrix = linkage(dists / linkage_matrix[-1, 2], "complete")
+    CM = fcluster(linkage_matrix, t=Th, criterion="distance")
+
+    # Reorder matrix by community
+    idx = np.argsort(CM)
+    reordered = np.array([[corr_matrix[i][j] for j in idx] for i in idx])
+
+    return reordered, CM, idx
+
+
+# === New plot: correlation matrix with filter ===
+_, _, _, bins, senm_abundance, forest_abundance = compute_spectra(filter_resolution)
+
+senm_corr = np.corrcoef(senm_abundance)
+forest_corr = np.corrcoef(forest_abundance)
+filtered_senm_corr = MarchenkoPastur(senm_corr, num, bins[0]*bins[1], remove_largest=False)
+filtered_forest_corr = MarchenkoPastur(forest_corr, num, bins[2]*bins[3], remove_largest=False)
+
+# === Community detection on filtered matrices ===
+tau = 1e-3
+Th = 1e-4
+
+senm_reordered, senm_CM, senm_idx = detect_communities(filtered_senm_corr, tau, Th)
+forest_reordered, forest_CM, forest_idx = detect_communities(filtered_forest_corr, tau, Th)
+
+# === Plot parameters ===
+cmap = cmocean.cm.balance
+vmin, vmax = -0.5, 0.5
+norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+
+# === Plot SENM correlation matrices ===
+fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
+
+axes[0].imshow(senm_corr, cmap=cmap, norm=norm)
+axes[0].set_title("SENM – Unfiltered")
+axes[0].set_xlabel("Species index")
+axes[0].set_ylabel("Species index")
+
+im1 = axes[1].imshow(senm_reordered, cmap=cmap, norm=norm)
+axes[1].set_title("SENM – Filtered & Reordered by Community")
+axes[1].set_xlabel("Species index")
+axes[1].set_ylabel("Species index")
+
+fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, pad=0.04, label="Correlation")
+fig.suptitle("SENM Correlation Matrices", fontsize=14, weight="bold")
+plt.show()
+
+
+# === Plot Forest correlation matrices ===
+fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
+
+axes[0].imshow(forest_corr, cmap=cmap, norm=norm)
+axes[0].set_title("Forest – Unfiltered")
+axes[0].set_xlabel("Species index")
+axes[0].set_ylabel("Species index")
+
+im1 = axes[1].imshow(forest_reordered, cmap=cmap, norm=norm)
+axes[1].set_title("Forest – Filtered & Reordered by Community")
+axes[1].set_xlabel("Species index")
+axes[1].set_ylabel("Species index")
+
+fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, pad=0.04, label="Correlation")
+fig.suptitle("Forest Correlation Matrices", fontsize=14, weight="bold")
+plt.show()
