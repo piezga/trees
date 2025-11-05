@@ -203,7 +203,7 @@ def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y, standardize):
         abundance = compute_abundance_matrix(num_species,df_top_N, n_bins_x, n_bins_y, data_type = 'senm', standardize=standardize)
         corr = np.nan_to_num(np.corrcoef(abundance), nan=0)
         eig_matrix[realization] = np.sort(np.linalg.eigvalsh(corr))[::-1]
-    return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
+    return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0), abundance
 
 def compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize=False):
     """Compute eigenvalue spectrum for forest data.
@@ -241,7 +241,7 @@ def compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize=False):
     # Compute eigenvalue spectrum, sorted descending
     spectrum = np.sort(np.linalg.eigvalsh(corr))[::-1]
     
-    return spectrum
+    return spectrum, abundance
 
 
 def marchenko_pastur_bounds(num_species,n_bins_x, n_bins_y):
