@@ -252,6 +252,14 @@ def plot_combined_spectra(num_species,all_spectra, labels, title, filename, senm
     print(f"Saved combined plot: {filename}")
 
 
+def marchenko_pastur_pdf(lmbda, q, sigma2=1.0):
+    """Return the Marchenko–Pastur PDF for given eigenvalue array and aspect ratio q."""
+    l_min = sigma2 * (1 - np.sqrt(1.0 / q))**2
+    l_max = sigma2 * (1 + np.sqrt(1.0 / q))**2
+    pdf = np.zeros_like(lmbda)
+    mask = (lmbda >= l_min) & (lmbda <= l_max)
+    pdf[mask] = q / (2 * np.pi * sigma2 * lmbda[mask]) * np.sqrt((l_max - lmbda[mask]) * (lmbda[mask] - l_min))
+    return pdf, l_min, l_max
         
         
         
@@ -295,8 +303,7 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     print(eigenvalues_A_above)
     print(eigenvalues_B_above)
     # Calculate relative squared difference
-    length= len(eigenvalues_A_above)
-    squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)/length
+    squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)/min_length
 
     return squared_diff
 
@@ -319,3 +326,5 @@ def load_file_with_padding(filename, N, num_columns):
 
     except Exception as e:
         raise RuntimeError(f"Failed to load or pad file '{filename}': {e}")
+
+
