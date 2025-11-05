@@ -138,32 +138,61 @@ def shuffle_labels(df):
     df_randomized['name'] = np.random.permutation(df['name'])  # Shuffle labels
     return df_randomized
 
-def compute_abundance_matrix(num_species,df, n_bins_x, n_bins_y, data_type):
-    """Compute species abundance matrix"""
-   
+def compute_abundance_matrix(num_species, df, n_bins_x, n_bins_y, data_type, standardize=False):
+    """Compute species abundance matrix.
+    
+    Parameters
+    ----------
+    num_species : int
+        Number of species to include.
+    df : pandas.DataFrame
+        Input data with columns 'x', 'y', and a species identifier column.
+    n_bins_x, n_bins_y : int
+        Number of spatial bins in the x and y directions.
+    data_type : str
+        Either 'forest' or 'senm', determines grid dimensions and species column name.
+    standardize : bool, optional
+        If True, standardize each species’ abundance vector (z-score normalization).
+    """
+    
     if data_type == 'forest':
         width = forest_grid_width
         height = forest_grid_height
-    if data_type == 'senm':
+    elif data_type == 'senm':
         width = senm_grid_width
         height = senm_grid_height
-
+    else:
+        raise ValueError("data_type must be either 'forest' or 'senm'")
 
     species_col = 'species_id' if data_type == 'senm' else 'name'
 
     df = df.copy()
     
+    # Assign bins
     df['x_bin'] = (df['x'] / (width / n_bins_x)).astype(int).clip(0, n_bins_x - 1)
     df['y_bin'] = (df['y'] / (height / n_bins_y)).astype(int).clip(0, n_bins_y - 1)
     
+    # Initialize abundance matrix
     abundance = np.zeros((num_species, n_bins_x * n_bins_y))
+    
     for i, (_, group) in enumerate(df.groupby(species_col)):
+        if i >= num_species:
+            break
         bin_counts = group.groupby(['x_bin', 'y_bin']).size()
         for (x, y), count in bin_counts.items():
             abundance[i, x * n_bins_y + y] = count
+    
+    # Standardize each row individually if requested
+    if standardize:
+        row_means = abundance.mean(axis=1, keepdims=True)
+        row_stds = abundance.std(axis=1, keepdims=True)
+        # Avoid division by zero
+        row_stds[row_stds == 0] = 1
+        abundance = (abundance - row_means) / row_stds
+    
     return abundance
 
-def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y):
+def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y, standardize):
 
     """Compute mean eigenvalue spectrum for SENM"""
 
@@ -171,21 +200,49 @@ def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y):
     for realization in range(NUM_REALIZATIONS):
         df = load_senm_data(nx, ny, nu, kernel, realization + 1)
         df_top_N = get_top_species(df,num_species) 
-        abundance = compute_abundance_matrix(num_species,df_top_N, n_bins_x, n_bins_y, data_type = 'senm')
+        abundance = compute_abundance_matrix(num_species,df_top_N, n_bins_x, n_bins_y, data_type = 'senm', standardize=standardize)
         corr = np.nan_to_num(np.corrcoef(abundance), nan=0)
         eig_matrix[realization] = np.sort(np.linalg.eigvalsh(corr))[::-1]
     return np.mean(eig_matrix, axis=0), np.std(eig_matrix, axis=0)
 
-def compute_forest_spectrum(df, names, n_bins_x, n_bins_y):
-    """Compute eigenvalue spectrum for forest data"""
-    x_bins = pd.cut(df.x, bins=n_bins_x, labels=False)
-    y_bins = pd.cut(df.y, bins=n_bins_y, labels=False)
-    species_matrix = np.array([
-        np.bincount(x_bins[df.name == name] * n_bins_y + y_bins[df.name == name],
-                   minlength=n_bins_x * n_bins_y) for name in names
-    ])
-    corr = np.nan_to_num(np.corrcoef(species_matrix), nan=0)
-    return np.sort(np.linalg.eigvalsh(corr))[::-1]
+def compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize=False):
+    """Compute eigenvalue spectrum for forest data.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing at least 'x', 'y', and 'name' columns.
+    names : list-like
+        List of species names to include.
+    n_bins_x, n_bins_y : int
+        Number of bins in the x and y directions.
+    standardize : bool, optional
+        If True, standardize each species’ abundance vector before correlation.
+        
+    Returns
+    -------
+    spectrum : numpy.ndarray
+        Sorted eigenvalue spectrum (descending order).
+    """
+    
+    # Compute abundance matrix using your earlier function
+    abundance = compute_abundance_matrix(
+        num_species=len(names),
+        df=df[df['name'].isin(names)],
+        n_bins_x=n_bins_x,
+        n_bins_y=n_bins_y,
+        data_type='forest',
+        standardize=standardize
+    )
+    
+    # Compute correlation matrix
+    corr = np.nan_to_num(np.corrcoef(abundance), nan=0)
+    
+    # Compute eigenvalue spectrum, sorted descending
+    spectrum = np.sort(np.linalg.eigvalsh(corr))[::-1]
+    
+    return spectrum
+
 
 def marchenko_pastur_bounds(num_species,n_bins_x, n_bins_y):
     """Calculate the Marchenko-Pastur bounds."""
@@ -328,3 +385,48 @@ def load_file_with_padding(filename, N, num_columns):
         raise RuntimeError(f"Failed to load or pad file '{filename}': {e}")
 
 
+def MarchenkoPastur(C,N,T,remove_largest=True):
+    """Uses Marchenko-Pastur law to remove noise.
+        remove_largest (bool), optional
+            If ``False``, all the eigenvectors associated to the
+            significant eigenvalues will be used to reconstruct the
+            de-noised empirical correlation matrix. If ``True``, the
+            eigenvector associated to the largest eigenvalue (normally
+            known as the ``market`` mode, [2]) is going to be excluded from
+            the recontruction step.  metric_distance (bool), optional: If
+            ``False``, a signed graph is obtained.  The weights associated
+            to the edges represent the de-noised correlation coefficient
+            :math:`\rho_{i,j}` between time series :math:`i` and :math:`j`.
+            If ``True``, the correlation is transformed by defining a
+            metric distance between each pair of nodes where :math:`d_{i,j}
+            = \sqrt{2(1-\rho_{i,j})}` as proposed in [3].  threshold_type
+            (str): Which thresholding function to use on the matrix of
+            weights. See `netrd.utilities.threshold.py` for
+            documentation. Pass additional arguments to the thresholder
+            using ``**kwargs``."""
+
+            
+
+            
+
+           
+    if N > T:
+        raise ValueError("L must be greater or equal than N.")
+
+    Q = T / N
+    w, v = np.linalg.eigh(C)  # Spectral decomposition of C
+    
+    w_min = 1 + 1 / Q - 2 * np.sqrt(1 / Q)
+    w_max = 1 + 1 / Q + 2 * np.sqrt(1 / Q)
+
+    selected = (w < w_min) | (w > w_max)
+
+    if remove_largest:
+        selected[-1] = False
+
+    w_signal = w[selected]
+    v_signal = v[:, selected]
+
+    C_new = v_signal.dot(np.diag(w_signal)).dot(v_signal.T)
+    print(w_min,w_max)
+    return C_new

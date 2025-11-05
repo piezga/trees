@@ -36,7 +36,7 @@ num_species = config['analysis']['num_species']
 censuses = config['forests']['censuses']
 num = 100
 verbose = True
-calculate = False
+calculate = True
 print(f'Calculate set to {calculate}')
 
 # === Compute spectra ===
@@ -51,14 +51,14 @@ def compute_spectra(resolution):
     
     bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
 
-    senm_mean, senm_std = compute_mean_senm_spectrum(num, n_bins_x_senm, n_bins_y_senm)
+    senm_mean, senm_std = compute_mean_senm_spectrum(num, n_bins_x_senm, n_bins_y_senm, standardize=True)
 
     forest_spectra = []
     for census in censuses:
         path = path_template.format(forest=forest)
         os.makedirs(f"{path}plots", exist_ok=True)
         df, names = load_forest_data(forest, census, num)
-        spectrum = compute_forest_spectrum(df, names, n_bins_x, n_bins_y)
+        spectrum = compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize = True)
         forest_spectra.append(spectrum)
 
     return senm_mean, senm_std, forest_spectra, bins
