@@ -36,7 +36,7 @@ num_species = config['analysis']['num_species']
 censuses = config['forests']['censuses']
 num = 100
 verbose = True
-calculate = True
+calculate = False
 print(f'Calculate set to {calculate}')
 
 # === Compute spectra ===
@@ -226,6 +226,40 @@ for idx, num in enumerate(num_species):
         plt.savefig(filename)
         if verbose: print(f'Saved spectra to {filename}')
         plt.close()
+
+        # === NEW: Plot eigenvalue density vs Marchenko–Pastur ===
+        plt.figure(figsize=(8,6))
+
+        # Histogram of eigenvalues
+        plt.hist(mean_forest_spectrum, bins=20, density=True, alpha=0.5,
+                 label='Forest eigenvalues', color='C0')
+        plt.hist(senm_spectrum, bins=20, density=True, alpha=0.5,
+                 label='SENM eigenvalues', color='C1')
+
+        # MP theoretical PDF
+        q_forest = (bins[2] * bins[3]) / num
+        q_senm   = (bins[0] * bins[1]) / num
+        l_vals = np.linspace(0, max(lambda_max_forest, lambda_max_senm)*1.2, 400)
+
+        mp_pdf_forest, lmin_forest, lmax_forest = marchenko_pastur_pdf(l_vals, q_forest)
+        mp_pdf_senm, lmin_senm, lmax_senm = marchenko_pastur_pdf(l_vals, q_senm)
+
+        plt.plot(l_vals, mp_pdf_forest, 'C0-', lw=2, label='MP Forest')
+        plt.plot(l_vals, mp_pdf_senm, 'C1--', lw=2, label='MP SENM')
+
+        # Labels, styling
+        plt.xlabel("Eigenvalue")
+        plt.ylabel("Density")
+        plt.title(f"Eigenvalue Spectrum Density vs MP ({resolution} m, N={num})")
+        plt.legend()
+        plt.grid(alpha=0.4)
+        plt.tight_layout()
+
+        filename_density = f'spectra/{num}_species_density_resolution_{resolution}.png'
+        plt.savefig(filename_density)
+        if verbose: print(f'Saved MP density plot to {filename_density}')
+        plt.close()
+
        
 
     # Plot with assigned color and consistent marker style
