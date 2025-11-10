@@ -16,3 +16,12 @@ Assumendo che gli alberi "unknown" siano distribuiti con la stessa distribuzione
 ## 14/10/25
 
 Il notebook è pieno di import strani. È più semplice fare dei moduli nella cartella locale.
+
+## 6/11/25
+
+Wanang droppato, ci si concentra su Barro. Guardando attentamente gli spettri alla
+stessa scala ci si accorge del fatto che il fit migliore dello spettro empirico non è a 
+scale enormi ma a quelle intermedie. Non si sa perché. Bisogna trovare una metrica 
+migliore della squared distance.
+Adesso sto facendo community detection con il laplaciano.
+
