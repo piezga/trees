@@ -416,7 +416,8 @@ axes[1].set_title("SENM – Filtered & Reordered by Community")
 axes[1].set_xlabel("Species index")
 axes[1].set_ylabel("Species index")
 
-fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, pad=0.04, label="Correlation")
+fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, 
+             pad=0.04, label="Correlation")
 fig.suptitle("SENM Correlation Matrices", fontsize=14, weight="bold")
 plt.show()
 
