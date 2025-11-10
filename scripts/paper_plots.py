@@ -99,7 +99,7 @@ colors = sns.color_palette("muted", n_colors=2)
 ax = ax_dict["A"]
 
 if calculate:
-    res_50_senm, res_50_senm_std, res_50_forest_list, _ = compute_spectra(50)
+    res_50_senm, res_50_senm_std, res_50_forest_list, _, _, _ = compute_spectra(50)
     np.save(f'quantities/barro_senm_std_{num}_50.npy', res_50_senm_std)
 else: 
     res_50_senm = np.load(f'quantities/{forest}_senm_spectrum_{num}_50.npy')
@@ -115,7 +115,7 @@ for spectrum in res_50_forest_list:
     ax.plot(x, spectrum, 'o-', color=colors[0], alpha=0.5, markerfacecolor='white')
 
 if calculate:
-    res_5_senm, res_5_senm_std, res_5_forest_list, _ = compute_spectra(5)
+    res_5_senm, res_5_senm_std, res_5_forest_list, _, _, _ = compute_spectra(5)
     np.save(f'quantities/barro_senm_std_{num}_5.npy', res_5_senm_std)
 else: 
     res_5_senm = np.load(f'quantities/{forest}_senm_spectrum_{num}_5.npy')
@@ -151,7 +151,7 @@ ax.text(-0.12, 1.05, '(a)', transform=ax.transAxes, fontsize=24, weight='bold')
 
 # === Panel B: Size effect ===
 ax_b = ax_dict["B"]
-resolutions = list(range(4, 5, 1))
+resolutions = list(range(4, 50, 1))
 x = resolutions
 
 colors_b = sns.color_palette("colorblind", n_colors=len(num_species))
@@ -164,11 +164,12 @@ for idx, num in enumerate(num_species):
     senm_communities = []
     empirical_communities = []
     square_diffs = []
+    comm_diffs = []
 
     for resolution in resolutions:
         
         if calculate:
-            senm_spectrum, _, forest_spectra, bins = compute_spectra(resolution)
+            senm_spectrum, _, forest_spectra, bins,  _, _ = compute_spectra(resolution)
             np.save(f'quantities/{forest}_senm_spectrum_{num}_{resolution}.npy',
                     senm_spectrum)
             np.save(f'quantities/{forest}_forest_spectra_{num}_{resolution}.npy', 
@@ -206,10 +207,10 @@ for idx, num in enumerate(num_species):
                        [lambda_max_forest])
             np.savetxt(f'quantities/{forest}_senm_MPmax_{num}_{resolution}.txt', 
                        [lambda_max_senm])
-        square_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, 
+        square_diff, comm_diff = square_diff_above_MP(senm_spectrum, mean_forest_spectrum, 
                                            lambda_max_senm, lambda_max_forest)
         square_diffs.append(square_diff)
-
+        comm_diffs.append(comm_diff) 
         # Plot and save figure
         plt.figure(figsize=(12, 7))
 
@@ -279,7 +280,7 @@ for idx, num in enumerate(num_species):
     # Plot with assigned color and consistent marker style
     ax_b.plot(
         x,
-        square_diffs,
+        comm_diffs,
         'o--',
         label=f"N = {num}",
         color=colors_b[idx],
@@ -379,6 +380,7 @@ def detect_communities(corr_matrix, tau=1e-3, Th=1e-4):
     # Reorder matrix by community
     idx = np.argsort(CM)
     reordered = np.array([[corr_matrix[i][j] for j in idx] for i in idx])
+    print(f'Number of clusters is {np.max(CM)}')
 
     return reordered, CM, idx
 

@@ -347,7 +347,9 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     # Get eigenvalues above lambda_max from both spectra
     eigenvalues_A_above = spectrum_A[spectrum_A > max_lambda]
     eigenvalues_B_above = spectrum_B[spectrum_B > max_lambda]
-    
+    num_communities_A = np.count_nonzero(eigenvalues_A_above) 
+    num_communities_B = np.count_nonzero(eigenvalues_B_above)
+    diff_communities = num_communities_A - num_communities_B 
     # Make sure we have the same number of eigenvalues above threshold
     min_length = min(len(eigenvalues_A_above), len(eigenvalues_B_above))
     if min_length == 0:
@@ -362,7 +364,7 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     # Calculate relative squared difference
     squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)/min_length
 
-    return squared_diff
+    return squared_diff, diff_communities
 
 def load_file_with_padding(filename, N, num_columns):
     try:
