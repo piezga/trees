@@ -329,6 +329,25 @@ def square_difference(spectrum1, spectrum2):
 
 
 
+def number_of_communities(spectrum, lambda_max ):
+    """
+    Calculates the number of eigenvalues outside of MP range.
+
+    Parameters:
+    spectrum: array of eigenvalues (sorted in descending order)
+    lambda_max: threshold value
+
+    Returns:
+    (int) num_communities: number of eigenvalues above lambda_max
+    """
+     
+    # Get eigenvalues above lambda_max 
+    eigenvalues_above = spectrum[spectrum > lambda_max]
+    num_communities = np.count_nonzero(eigenvalues_above) 
+
+    return num_communities
+
+
 def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     """
     Calculate the squared difference of all eigenvalues above lambda_max
@@ -359,8 +378,6 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     # Take the first min_length eigenvalues from both arrays and normalize
     eigenvalues_A_above = eigenvalues_A_above[:min_length]
     eigenvalues_B_above = eigenvalues_B_above[:min_length]
-    print(eigenvalues_A_above)
-    print(eigenvalues_B_above)
     # Calculate relative squared difference
     squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)/min_length
 
