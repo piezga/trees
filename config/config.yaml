@@ -25,6 +25,7 @@ forests:
     abundance_template: "{forest}_abundances_{census}.csv"
     names_template: "names_{forest}_{census}.txt"
   censuses: [1, 2, 3, 4, 5, 6, 7, 8]
+  
 
 # Grid settings
 grid:
@@ -37,6 +38,7 @@ grid:
 
 # Defaults for analysis
 analysis:
-  num_species: [100]
+  num_species: 100
+  species_array: [100]
   resolutions: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 
