@@ -2,6 +2,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import cmocean
+import matplotlib.colors as mcolors
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from src.functions import marchenko_pastur_pdf, marchenko_pastur_bounds
 
@@ -15,88 +17,68 @@ def plot_dual_spectra_with_inset(
 ):
     """
     Plot dual-resolution spectra comparison with inset.
-    
-    Parameters
-    ----------
-    res_50_senm : array
-        SENM spectrum at 50m resolution
-    res_50_senm_std : array
-        Standard deviation for SENM at 50m
-    res_50_forest_list : list of arrays
-        Forest spectra at 50m resolution
-    res_5_senm : array
-        SENM spectrum at 5m resolution
-    res_5_senm_std : array
-        Standard deviation for SENM at 5m
-    res_5_forest_list : list of arrays
-        Forest spectra at 5m resolution
-    num_species : int
-        Number of species
-    ax : matplotlib.axes.Axes, optional
-        Axes to plot on. If None, creates new figure
-    show : bool
-        Whether to call plt.show()
-    filename : str, optional
-        If provided, save figure to this path
-        
-    Returns
-    -------
-    ax : matplotlib.axes.Axes
-        The axes object with the plot
     """
+    plt.rcParams.update({
+        'font.size': 14,
+        'font.weight': 'bold',
+        'axes.labelweight': 'bold',
+        'axes.titlesize': 16,
+        'axes.titleweight': 'bold',
+        'lines.linewidth': 2.5,
+        'lines.markersize': 8
+    })
+    
     if ax is None:
         fig, ax = plt.subplots(figsize=(7, 6))
     
     x = np.arange(1, num_species + 1)
     colors = sns.color_palette("muted", n_colors=2)
     
-    # Main plot: 50m resolution
+    # --- Main Plot (50 m) ---
     ax.plot(x, res_50_senm, 'o--', color=colors[0], label='SENM (50 m)')
-    ax.set_title('50 m', fontsize=22, pad=4)
-    ax.fill_between(x, res_50_senm - res_50_senm_std, 
-                     res_50_senm + res_50_senm_std,
-                     color=colors[0], alpha=0.25)
-    
+    ax.fill_between(
+        x, res_50_senm - res_50_senm_std, res_50_senm + res_50_senm_std,
+        color=colors[0], alpha=0.25
+    )
     for spectrum in res_50_forest_list:
-        ax.plot(x, spectrum, 'o-', color=colors[0], 
-                alpha=0.5, markerfacecolor='white')
+        ax.plot(x, spectrum, 'o-', color=colors[0], alpha=0.5, markerfacecolor='white')
     
-    # Inset: 5m resolution
-    axins = inset_axes(ax, width="45%", height="45%", 
-                       loc='lower left', borderpad=2)
+    # --- Inset (5 m) ---
+    axins = inset_axes(ax, width="45%", height="45%", loc='lower left', borderpad=2)
     axins.plot(x, res_5_senm, 'o--', color=colors[1], label='SENM (5 m)')
-    axins.fill_between(x, res_5_senm - res_5_senm_std, 
-                       res_5_senm + res_5_senm_std,
-                       color=colors[1], alpha=0.25)
-    
+    axins.fill_between(
+        x, res_5_senm - res_5_senm_std, res_5_senm + res_5_senm_std,
+        color=colors[1], alpha=0.25
+    )
     for spectrum in res_5_forest_list:
-        axins.plot(x, spectrum, 'o-', color=colors[1], 
-                   alpha=0.5, markerfacecolor='white')
+        axins.plot(x, spectrum, 'o-', color=colors[1], alpha=0.5, markerfacecolor='white')
     
-    # Formatting
+    # --- Axis Formatting ---
     ax.set_xscale('log')
     ax.set_yscale('log')
     ax.set_xlim(1, 90)
     ax.set_ylim(1e-3, 100)
-    ax.set_xlabel(r'$\lambda$ rank')
-    ax.set_ylabel(r'$\lambda$')
+    ax.set_xlabel(r'$\lambda$ Rank', labelpad=8)
+    ax.set_ylabel(r'$\lambda$ Value', labelpad=8)
+    ax.set_title('Spectral Comparison at 50 m ')
     ax.grid(True, which="both", linestyle='--', alpha=0.5)
     
-    axins.grid(True, linestyle='--', alpha=0.5)
     axins.set_xscale('log')
     axins.set_yscale('log')
+    axins.grid(True, linestyle='--', alpha=0.5)
     axins.set_xlim(1, num_species)
     axins.set_ylim(0.5, max(np.max(res_5_senm + res_5_senm_std),
                             max(np.max(spectrum) for spectrum in res_5_forest_list)))
-    axins.set_title('5 m', fontsize=18, pad=4)
+    axins.set_title('5 m ', fontsize=12, pad=2)
     axins.tick_params(labelsize=8)
     
-    ax.text(-0.12, 1.05, '(a)', transform=ax.transAxes, 
-            fontsize=24, weight='bold')
+    # --- Label and Layout ---
+    ax.text(-0.12, 1.05, '(a)', transform=ax.transAxes, fontsize=24, weight='bold')
+    ax.legend(loc='best', frameon=False, fontsize=12)
+    plt.tight_layout()
     
     if filename:
         plt.savefig(filename, dpi=300, bbox_inches='tight')
-    
     if show:
         plt.show()
     
@@ -111,51 +93,49 @@ def plot_size_effect_panel(
 ):
     """
     Plot Panel B: Community difference vs resolution for multiple species counts.
-    
-    Parameters
-    ----------
-    resolutions_list : list
-        List of resolution values
-    comm_diffs_dict : dict
-        Dictionary mapping num_species -> list of community differences
-    species_array : list
-        List of species counts to plot
-    ax : matplotlib.axes.Axes, optional
-        Axes to plot on
-    show : bool
-        Whether to display the plot
-        
-    Returns
-    -------
-    ax : matplotlib.axes.Axes
     """
+    plt.rcParams.update({
+        'font.size': 14,
+        'font.weight': 'bold',
+        'axes.labelweight': 'bold',
+        'axes.titlesize': 16,
+        'axes.titleweight': 'bold',
+        'lines.linewidth': 2.5,
+        'lines.markersize': 8
+    })
+    
     if ax is None:
         fig, ax = plt.subplots(figsize=(7, 6))
     
     colors_b = sns.color_palette("colorblind", n_colors=len(species_array))
-    x = np.array(resolutions_list)
+    x = np.array(resolutions_list, dtype=float)
     
     for idx, num_species in enumerate(species_array):
         ax.plot(
             x,
             comm_diffs_dict[num_species],
             'o--',
-            label=f"N = {num_species}",
+            label=f"{num_species} Species",
             color=colors_b[idx],
             markerfacecolor='white',
             linewidth=2
         )
     
-    ax.set_xlabel("Resolution (m)")
-    ax.set_ylabel(r"$\Delta N_c$")
+    # --- Axis labels + styling ---
+    ax.set_xlabel('Inverse resolution (m)', labelpad=8)
+    ax.set_ylabel(r'$\Delta N_c$', labelpad=8)
+    ax.set_title('Difference in detected communities')
+    
     ax.grid(True, linestyle='--', alpha=0.5)
-    ax.legend(fontsize=22, loc='best', frameon=False)
+    ax.legend(fontsize=12, loc='best', frameon=False)
     ax.text(-0.12, 1.05, '(b)', transform=ax.transAxes, fontsize=24, weight='bold')
+    plt.tight_layout()
     
     if show:
         plt.show()
     
     return ax
+
 
 def plot_spectra_with_mp_bounds(
     forest_spectrum,
@@ -222,8 +202,6 @@ def plot_spectra_with_mp_bounds(
     
     if filename:
         plt.savefig(filename)
-        if verbose:
-            print(f'Saved spectra to {filename}')
     
     if show:
         plt.show()
@@ -303,8 +281,6 @@ def plot_eigenvalue_density_vs_mp(
     
     if filename:
         plt.savefig(filename)
-        if verbose:
-            print(f'Saved MP density plot to {filename}')
     
     if show:
         plt.show()
@@ -365,7 +341,7 @@ def plot_community_count_vs_resolution(
     plt.plot(x, forest_communities, 'o--', label='Forest Communities', color=colors[0])
     plt.plot(x, senm_communities, 'o--', label='SENM Communities', color=colors[1])
     
-    plt.xlabel('Resolution (m)')
+    plt.xlabel('Inverse resolution (m)')
     plt.ylabel('Number of Communities')
     plt.title(f'Community Count vs Resolution ({num_species} species)')
     plt.grid(True, alpha=0.5)
@@ -384,4 +360,74 @@ def plot_community_count_vs_resolution(
     
     return fig
 
-
+def plot_correlation_matrices_comparison(
+    unfiltered_corr,
+    filtered_reordered_corr,
+    data_type='SENM',
+    cmap=None,
+    vmin=-0.5,
+    vmax=0.5,
+    figsize=(10, 4),
+    filename=None,
+    show=True
+):
+    """
+    Plot side-by-side comparison of unfiltered and filtered/reordered correlation matrices.
+    
+    Parameters
+    ----------
+    unfiltered_corr : array
+        Unfiltered correlation matrix
+    filtered_reordered_corr : array
+        Filtered and community-reordered correlation matrix
+    data_type : str
+        Label for the data type (e.g., 'SENM', 'Forest')
+    cmap : matplotlib colormap, optional
+        Colormap to use. Defaults to cmocean.cm.balance
+    vmin, vmax : float
+        Color scale limits
+    figsize : tuple
+        Figure size (width, height)
+    filename : str, optional
+        Path to save figure
+    show : bool
+        Whether to display the plot
+        
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+    axes : array of matplotlib.axes.Axes
+    """
+    if cmap is None:
+        cmap = cmocean.cm.balance
+    
+    norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+    
+    fig, axes = plt.subplots(1, 2, figsize=figsize, constrained_layout=True)
+    
+    # Unfiltered correlation matrix
+    axes[0].imshow(unfiltered_corr, cmap=cmap, norm=norm)
+    axes[0].set_title(f"{data_type} – Unfiltered")
+    axes[0].set_xlabel("Species index")
+    axes[0].set_ylabel("Species index")
+    
+    # Filtered & reordered correlation matrix
+    im1 = axes[1].imshow(filtered_reordered_corr, cmap=cmap, norm=norm)
+    axes[1].set_title(f"{data_type} – Filtered & Reordered by Community")
+    axes[1].set_xlabel("Species index")
+    axes[1].set_ylabel("Species index")
+    
+    # Colorbar
+    fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, 
+                 pad=0.04, label="Correlation")
+    fig.suptitle(f"{data_type} Correlation Matrices", fontsize=14, weight="bold")
+    
+    if filename:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
+    
+    return fig, axes

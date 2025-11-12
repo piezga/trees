@@ -47,7 +47,7 @@ species_array = config['analysis']['species_array']
 censuses = config['forests']['censuses']
 
 # Some parameters
-filter_resolution = 10
+filter_resolution = 32
 
 # Argument parser 
 
@@ -122,7 +122,7 @@ plot_dual_spectra_with_inset(
 # === Panel B: Size Effect ===
 # ============================
 ax_b = ax_dict["B"]
-resolutions = list(range(4, 50, 1))
+resolutions = list(range(4, 34, 1))
 
 # Store results for Panel B and supplementary plots
 results_for_panel_b = {}  # Will store: num_species -> list of comm_diffs
@@ -205,7 +205,7 @@ plot_size_effect_panel(
 )
 
 # === Finalize main figure ===
-plt.tight_layout()
+#plt.tight_layout()
 plt.show()
 
 # ============================================
@@ -266,91 +266,42 @@ for num_species, data in community_data.items():
         verbose=verbose
     )
 
-# === Helper function for community detection ===
-def detect_communities(corr_matrix, tau=1e-3, Th=1e-4):
-    """Detect communities from filtered correlation matrix using Laplacian diffusion clustering."""
-    corr_pos = np.copy(corr_matrix)
-    corr_pos[corr_pos < 0] = 0  # only positive correlations
+# ================================================
+# === Correlation Matrix Analysis ===
+# ================================================
 
-    # Build graph and Laplacian
-    G = nx.from_numpy_array(np.abs(corr_pos))
-    G.remove_edges_from(nx.selfloop_edges(G))
-    L = nx.laplacian_matrix(G).todense()
-
-    # Diffusion process
-    num = expm(-tau * L)
-    rho = num / np.trace(num)
-
-    # Symmetric distance matrix
-    Trho = np.copy(1.0 / rho)
-    Trho = np.tril(Trho) + np.triu(Trho.T, 1)
-    np.fill_diagonal(Trho, 0)
-
-    # Hierarchical clustering
-    dists = squareform(Trho)
-    linkage_matrix = linkage(dists, "complete")
-    linkage_matrix = linkage(dists / linkage_matrix[-1, 2], "complete")
-    CM = fcluster(linkage_matrix, t=Th, criterion="distance")
-
-    # Reorder matrix by community
-    idx = np.argsort(CM)
-    reordered = np.array([[corr_matrix[i][j] for j in idx] for i in idx])
-
-    return reordered, CM, idx
-
-
-# === New plot: correlation matrix with filter ===
+# Compute spectra and get abundance data
 _, _, _, bins, senm_abundance, forest_abundance = compute_spectra(filter_resolution)
 
+# Compute correlation matrices
 senm_corr = np.corrcoef(senm_abundance)
 forest_corr = np.corrcoef(forest_abundance)
+
+# Apply Marchenko-Pastur filter
 filtered_senm_corr = MarchenkoPastur(senm_corr, num_species, bins[0]*bins[1], remove_largest=False)
 filtered_forest_corr = MarchenkoPastur(forest_corr, num_species, bins[2]*bins[3], remove_largest=False)
 
-# === Community detection on filtered matrices ===
+# Detect communities on filtered matrices
 tau = 1e-3
 Th = 1e-4
 
 senm_reordered, senm_CM, senm_idx = detect_communities(filtered_senm_corr, tau, Th)
 forest_reordered, forest_CM, forest_idx = detect_communities(filtered_forest_corr, tau, Th)
 
-# === Plot parameters ===
-cmap = cmocean.cm.balance
-vmin, vmax = -0.5, 0.5
-norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+# Plot SENM correlation matrices
+plot_correlation_matrices_comparison(
+    senm_corr,
+    senm_reordered,
+    data_type='SENM',
+    filename='correlation_matrices_senm.png',
+    show=True
+)
 
-# === Plot SENM correlation matrices ===
-fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
-
-axes[0].imshow(senm_corr, cmap=cmap, norm=norm)
-axes[0].set_title("SENM – Unfiltered")
-axes[0].set_xlabel("Species index")
-axes[0].set_ylabel("Species index")
-
-im1 = axes[1].imshow(senm_reordered, cmap=cmap, norm=norm)
-axes[1].set_title("SENM – Filtered & Reordered by Community")
-axes[1].set_xlabel("Species index")
-axes[1].set_ylabel("Species index")
-
-fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, 
-             pad=0.04, label="Correlation")
-fig.suptitle("SENM Correlation Matrices", fontsize=14, weight="bold")
-plt.show()
-
-
-# === Plot Forest correlation matrices ===
-fig, axes = plt.subplots(1, 2, figsize=(10, 4), constrained_layout=True)
-
-axes[0].imshow(forest_corr, cmap=cmap, norm=norm)
-axes[0].set_title("Forest – Unfiltered")
-axes[0].set_xlabel("Species index")
-axes[0].set_ylabel("Species index")
-
-im1 = axes[1].imshow(forest_reordered, cmap=cmap, norm=norm)
-axes[1].set_title("Forest – Filtered & Reordered by Community")
-axes[1].set_xlabel("Species index")
-axes[1].set_ylabel("Species index")
-
-fig.colorbar(im1, ax=axes, orientation="vertical", fraction=0.03, pad=0.04, label="Correlation")
-fig.suptitle("Forest Correlation Matrices", fontsize=14, weight="bold")
-plt.show()
+# Plot Forest correlation matrices
+plot_correlation_matrices_comparison(
+    forest_corr,
+    forest_reordered,
+    data_type='Forest',
+    filename='correlation_matrices_forest.png',
+    show=True
+)
