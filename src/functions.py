@@ -447,5 +447,4 @@ def MarchenkoPastur(C,N,T,remove_largest=True):
     v_signal = v[:, selected]
 
     C_new = v_signal.dot(np.diag(w_signal)).dot(v_signal.T)
-    print(w_min,w_max)
     return C_new
