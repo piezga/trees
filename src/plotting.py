@@ -431,3 +431,113 @@ def plot_correlation_matrices_comparison(
         plt.close()
     
     return fig, axes
+
+from scipy.cluster.hierarchy import dendrogram
+
+def plot_community_dendrogram(
+    linkage_matrix,
+    threshold=1e-4,
+    ax=None,
+    orientation='top',
+    leaf_rotation=0,
+    leaf_font_size=10,
+    color_threshold_color='#ED2939',
+    figsize=(8, 6),
+    normalize=True,
+    title=None,
+    ylabel=r'$D/D_{max}$',
+    xlabel='Node index',
+    ylim_padding=(0.2, 0.1),
+    filename=None,
+    show=True
+):
+    """
+    Plot hierarchical clustering dendrogram with custom styling.
+    
+    Parameters
+    ----------
+    linkage_matrix : array
+        Linkage matrix from scipy.cluster.hierarchy.linkage
+    threshold : float
+        Distance threshold for cutting the dendrogram (horizontal line)
+    ax : matplotlib.axes.Axes, optional
+        Axes to plot on
+    orientation : str
+        Dendrogram orientation ('top', 'bottom', 'left', 'right')
+    leaf_rotation : float
+        Rotation angle for leaf labels
+    leaf_font_size : int
+        Font size for leaf labels
+    color_threshold_color : str
+        Color for the threshold line
+    figsize : tuple
+        Figure size if ax is None
+    normalize : bool
+        If True, normalize linkage distances by maximum distance
+    ylabel : str
+        Y-axis label
+    xlabel : str
+        X-axis label
+    ylim_padding : tuple
+        (bottom_padding_fraction, top_padding_fraction) for y-axis limits
+    filename : str, optional
+        Path to save figure
+    show : bool
+        Whether to display the plot
+        
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+    dendrogram_dict : dict
+        Dictionary of data structures computed to render the dendrogram
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    
+    # Normalize linkage matrix if requested
+    if normalize:
+        linkage_normalized = linkage_matrix.copy()
+        tmax = linkage_matrix[:, 2][-1]
+        linkage_normalized[:, 2] = linkage_matrix[:, 2] / tmax
+    else:
+        linkage_normalized = linkage_matrix
+    
+    # Create labels
+    n_samples = linkage_matrix.shape[0] + 1
+    labelList = [i + 1 for i in range(n_samples)]
+    
+    # Plot dendrogram
+    dendrogram_dict = dendrogram(
+        linkage_normalized,
+        labels=labelList,
+        ax=ax,
+        leaf_rotation=leaf_rotation,
+        orientation=orientation,
+        color_threshold=threshold,
+        above_threshold_color='k',
+        leaf_font_size=leaf_font_size
+    )
+    
+    # Set y-axis limits with padding
+    tmin = linkage_normalized[:, 2][0] - ylim_padding[0] * linkage_normalized[:, 2][0]
+    tmax = linkage_normalized[:, 2][-1] + ylim_padding[1] * linkage_normalized[:, 2][-1]
+    ax.set_ylim(tmin, tmax)
+    
+    # Add threshold line
+    ax.axhline(y=threshold, color=color_threshold_color, linestyle='--', linewidth=2)
+    
+    # Labels and styling
+    ax.set_title(title)
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
+    ax.set_yscale('log')
+    ax.set_yticks([1e-4, 1e-2, 1e0])
+    ax.set_xticks([])  # Remove x-ticks as in the example
+    
+    if filename:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+    
+    if show:
+        plt.show()
+    
+    return ax, dendrogram_dict

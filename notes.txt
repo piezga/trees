@@ -28,6 +28,6 @@ Adesso sto facendo community detection con il laplaciano.
 ## 10/11/25
 
 Guardare la differenza del numero di comunità individuate sembra essere la strada promettente
-Intanto c'è da controllare il risultato e rendere il plot sexy.
+Intanto c'è da controllare il risultato e rendere il plot bello.
 Poi si potrebbero provare diversi tipi di clustering, incluso uno fatto soltanto sulla correlation distance
 (ovvero senza laplaciano).

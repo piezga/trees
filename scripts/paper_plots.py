@@ -47,7 +47,7 @@ species_array = config['analysis']['species_array']
 censuses = config['forests']['censuses']
 
 # Some parameters
-filter_resolution = 32
+filter_resolution = 12
 
 # Argument parser 
 
@@ -281,12 +281,16 @@ forest_corr = np.corrcoef(forest_abundance)
 filtered_senm_corr = MarchenkoPastur(senm_corr, num_species, bins[0]*bins[1], remove_largest=False)
 filtered_forest_corr = MarchenkoPastur(forest_corr, num_species, bins[2]*bins[3], remove_largest=False)
 
-# Detect communities on filtered matrices
+# Detect communities on filtered matrices (LAPLACIAN)
 tau = 1e-3
 Th = 1e-4
 
-senm_reordered, senm_CM, senm_idx = detect_communities(filtered_senm_corr, tau, Th)
-forest_reordered, forest_CM, forest_idx = detect_communities(filtered_forest_corr, tau, Th)
+"""
+
+senm_reordered, senm_CM, senm_idx, senm_linkage =detect_communities(filtered_senm_corr,
+                                                                    tau, Th,
+                                                                    return_linkage = True)
+forest_reordered, forest_CM, forest_idx, forest_linkage  = detect_communities(filtered_forest_corr,tau,Th,return_linkage = True)
 
 # Plot SENM correlation matrices
 plot_correlation_matrices_comparison(
@@ -303,5 +307,28 @@ plot_correlation_matrices_comparison(
     forest_reordered,
     data_type='Forest',
     filename='correlation_matrices_forest.png',
+    show=True
+)
+"""
+
+_, _, _, senm_linkage = detect_communities_corr(filtered_senm_corr, 17, return_linkage = True)
+
+_, _, _, forest_linkage = detect_communities_corr(filtered_forest_corr, 10, return_linkage = True)
+
+
+# Plot dendrograms
+plot_community_dendrogram(
+    senm_linkage,
+    threshold=Th,
+    title='SENM',
+    filename='dendrogram_senm.png',
+    show=True
+)
+
+plot_community_dendrogram(
+    forest_linkage,
+    threshold=Th,
+    title='Forest',
+    filename='dendrogram_forest.png',
     show=True
 )

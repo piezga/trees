@@ -68,7 +68,7 @@ def compute_spectra(resolution):
     return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundance
 
 # === Helper function for community detection ===
-def detect_communities(corr_matrix, tau=1e-3, Th=1e-4):
+def detect_communities(corr_matrix, tau=1e-3, Th=1e-4, return_linkage=False):
     """Detect communities from filtered correlation matrix using Laplacian diffusion clustering."""
     corr_pos = np.copy(corr_matrix)
     corr_pos[corr_pos < 0] = 0  # only positive correlations
@@ -89,14 +89,71 @@ def detect_communities(corr_matrix, tau=1e-3, Th=1e-4):
 
     # Hierarchical clustering
     dists = squareform(Trho)
-    linkage_matrix = linkage(dists, "complete")
-    linkage_matrix = linkage(dists / linkage_matrix[-1, 2], "complete")
+    linkage_matrix = linkage(dists, "ward")
+    linkage_matrix = linkage(dists / linkage_matrix[-1, 2], "ward")
     CM = fcluster(linkage_matrix, t=Th, criterion="distance")
 
     # Reorder matrix by community
     idx = np.argsort(CM)
     reordered = np.array([[corr_matrix[i][j] for j in idx] for i in idx])
+    
+    if return_linkage:
+        return reordered, CM, idx, linkage_matrix
+    else:
+        return reordered, CM, idx
 
-    return reordered, CM, idx
 
-
+def detect_communities_corr(corr_matrix, n_communities, return_linkage=False):
+    """
+    Detect communities using Ward hierarchical clustering on correlation-based distances.
+    
+    Parameters
+    ----------
+    corr_matrix : array
+        Correlation matrix (NxN)
+    n_communities : int
+        Number of communities to detect
+    return_linkage : bool
+        If True, also return the linkage matrix for plotting
+        
+    Returns
+    -------
+    reordered : array
+        Correlation matrix reordered by community membership
+    CM : array
+        Community membership labels for each node (1 to n_communities)
+    idx : array
+        Indices for reordering (sorted by community)
+    linkage_matrix : array (optional)
+        Normalized linkage matrix, returned if return_linkage=True
+    """
+    # Convert correlations to distances
+    # Using d = sqrt(2(1-r)) which is a proper metric for correlations
+    # Alternative: d = 1 - |r| for a simpler transformation
+    distance_matrix = np.sqrt(2 * (1 - np.abs(corr_matrix)))
+    
+    # Ensure symmetry and zero diagonal
+    distance_matrix = (distance_matrix + distance_matrix.T) / 2
+    np.fill_diagonal(distance_matrix, 0)
+    
+    # Convert to condensed distance matrix for linkage
+    dists = squareform(distance_matrix)
+    
+    # Perform Ward linkage
+    linkage_matrix = linkage(dists, method="ward")
+    
+    # Normalize linkage distances by maximum
+    linkage_matrix_norm = linkage_matrix.copy()
+    linkage_matrix_norm[:, 2] = linkage_matrix[:, 2] / linkage_matrix[-1, 2]
+    
+    # Cut dendrogram to get n_communities
+    CM = fcluster(linkage_matrix_norm, t=n_communities, criterion='maxclust')
+    
+    # Reorder matrix by community
+    idx = np.argsort(CM)
+    reordered = np.array([[corr_matrix[i][j] for j in idx] for i in idx])
+    
+    if return_linkage:
+        return reordered, CM, idx, linkage_matrix_norm
+    else:
+        return reordered, CM, idx
