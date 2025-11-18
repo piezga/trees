@@ -447,7 +447,9 @@ def plot_community_dendrogram(
     title=None,
     ylabel=r'$D/D_{max}$',
     xlabel='Node index',
-    ylim_padding=(0.2, 0.1),
+    ylim_padding=(0.2, 0.2),  # Changed to symmetric padding
+    ylim_auto=True,  # New parameter
+    ylim_manual=None,  # New parameter for manual override
     filename=None,
     show=True
 ):
@@ -474,12 +476,18 @@ def plot_community_dendrogram(
         Figure size if ax is None
     normalize : bool
         If True, normalize linkage distances by maximum distance
+    title : str, optional
+        Plot title
     ylabel : str
         Y-axis label
     xlabel : str
         X-axis label
     ylim_padding : tuple
         (bottom_padding_fraction, top_padding_fraction) for y-axis limits
+    ylim_auto : bool
+        If True, automatically determine y-limits based on data range
+    ylim_manual : tuple, optional
+        Manual (ymin, ymax) override. Takes precedence over ylim_auto
     filename : str, optional
         Path to save figure
     show : bool
@@ -518,21 +526,54 @@ def plot_community_dendrogram(
         leaf_font_size=leaf_font_size
     )
     
-    # Set y-axis limits with padding
-    tmin = linkage_normalized[:, 2][0] - ylim_padding[0] * linkage_normalized[:, 2][0]
-    tmax = linkage_normalized[:, 2][-1] + ylim_padding[1] * linkage_normalized[:, 2][-1]
-    ax.set_ylim(tmin, tmax)
+    # Set y-axis limits
+    if ylim_manual is not None:
+        # Manual override
+        ax.set_ylim(ylim_manual)
+    elif ylim_auto:
+        # Automatic: base on actual data range
+        distances = linkage_normalized[:, 2]
+        dmin = distances[0]  # Minimum distance
+        dmax = distances[-1]  # Maximum distance
+        
+        # Use log-scale aware padding
+        # In log space, we want to add/subtract a fraction of the log range
+        log_dmin = np.log10(max(dmin, 1e-10))  # Avoid log(0)
+        log_dmax = np.log10(dmax)
+        log_range = log_dmax - log_dmin
+        
+        # Add padding in log space
+        ymin = 10 ** (log_dmin - ylim_padding[0] * log_range)
+        ymax = 10 ** (log_dmax + ylim_padding[1] * log_range)
+        
+        ax.set_ylim(ymin, ymax)
+    else:
+        # Old behavior: use fixed padding
+        tmin = linkage_normalized[:, 2][0] - ylim_padding[0] * linkage_normalized[:, 2][0]
+        tmax = linkage_normalized[:, 2][-1] + ylim_padding[1] * linkage_normalized[:, 2][-1]
+        ax.set_ylim(tmin, tmax)
     
     # Add threshold line
-    ax.axhline(y=threshold, color=color_threshold_color, linestyle='--', linewidth=2)
+    ax.axhline(y=threshold, color=color_threshold_color, linestyle='--', linewidth=2, 
+               label=f'Cut threshold')
     
     # Labels and styling
-    ax.set_title(title)
+    if title:
+        ax.set_title(title)
     ax.set_ylabel(ylabel)
     ax.set_xlabel(xlabel)
     ax.set_yscale('log')
-    ax.set_yticks([1e-4, 1e-2, 1e0])
+    
+    # Set y-ticks dynamically based on the actual range
+    current_ylim = ax.get_ylim()
+    # Generate reasonable tick positions in log scale
+    log_ymin = np.floor(np.log10(current_ylim[0]))
+    log_ymax = np.ceil(np.log10(current_ylim[1]))
+    yticks = [10**i for i in range(int(log_ymin), int(log_ymax) + 1)]
+    ax.set_yticks(yticks)
+    
     ax.set_xticks([])  # Remove x-ticks as in the example
+    ax.legend(loc='best', fontsize=10)
     
     if filename:
         plt.savefig(filename, dpi=300, bbox_inches='tight')
@@ -541,3 +582,4 @@ def plot_community_dendrogram(
         plt.show()
     
     return ax, dendrogram_dict
+

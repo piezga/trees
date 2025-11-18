@@ -208,6 +208,9 @@ plot_size_effect_panel(
 #plt.tight_layout()
 plt.show()
 
+
+"""
+
 # ============================================
 # === Supplementary Plots ===
 # ============================================
@@ -265,6 +268,7 @@ for num_species, data in community_data.items():
         show=False,
         verbose=verbose
     )
+"""
 
 # ================================================
 # === Correlation Matrix Analysis ===
@@ -311,15 +315,14 @@ plot_correlation_matrices_comparison(
 )
 """
 
-_, _, _, senm_linkage = detect_communities_corr(filtered_senm_corr, 17, return_linkage = True)
+_, _, _, senm_linkage, senm_th = detect_communities_corr(filtered_senm_corr, 17, return_linkage = True)
 
-_, _, _, forest_linkage = detect_communities_corr(filtered_forest_corr, 10, return_linkage = True)
-
+_, _, _, forest_linkage, forest_th = detect_communities_corr(filtered_forest_corr, 10, return_linkage = True)
 
 # Plot dendrograms
 plot_community_dendrogram(
     senm_linkage,
-    threshold=Th,
+    threshold=senm_th,
     title='SENM',
     filename='dendrogram_senm.png',
     show=True
@@ -327,7 +330,7 @@ plot_community_dendrogram(
 
 plot_community_dendrogram(
     forest_linkage,
-    threshold=Th,
+    threshold=forest_th,
     title='Forest',
     filename='dendrogram_forest.png',
     show=True
