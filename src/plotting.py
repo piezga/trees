@@ -5,7 +5,7 @@ import seaborn as sns
 import cmocean
 import matplotlib.colors as mcolors
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from src.functions import marchenko_pastur_pdf, marchenko_pastur_bounds
+from src.compute import marchenko_pastur_pdf, marchenko_pastur_bounds
 
 def plot_dual_spectra_with_inset(
     res_50_senm, res_50_senm_std, res_50_forest_list,
@@ -582,4 +582,61 @@ def plot_community_dendrogram(
         plt.show()
     
     return ax, dendrogram_dict
+
+def supplementary_plots(results_for_supplementary, verbose):
+    # Module that generates supplementary_plots
+    # Needs the results from the first subplot
+    for result in results_for_supplementary:
+        num_species = result['num_species']
+        resolution = result['resolution']
+
+        # Plot spectra with MP bounds
+        plot_spectra_with_mp_bounds(
+            result['forest_spectrum'],
+            result['senm_spectrum'],
+            result['lambda_max_forest'],
+            result['lambda_max_senm'],
+            resolution,
+            num_species,
+            filename=f'spectra/{num_species}_species_resolution_{resolution}.png',
+            show=False,
+            verbose=verbose
+        )
+
+        # Plot eigenvalue density
+        plot_eigenvalue_density_vs_mp(
+            result['forest_spectrum'],
+            result['senm_spectrum'],
+            result['bins'],
+            resolution,
+            num_species,
+            result['lambda_max_forest'],
+            result['lambda_max_senm'],
+            filename=f'spectra/{num_species}_species_density_resolution_{resolution}.png',
+            show=False,
+            verbose=verbose
+        )
+
+    # Plot community count vs resolution for each species count
+    # Group results by num_species
+    from collections import defaultdict
+    community_data = defaultdict(lambda: {'resolutions': [], 'forest': [], 'senm': []})
+
+    for result in results_for_supplementary:
+        ns = result['num_species']
+        community_data[ns]['resolutions'].append(result['resolution'])
+        community_data[ns]['forest'].append(result['forest_communities'])
+        community_data[ns]['senm'].append(result['senm_communities'])
+
+    for num_species, data in community_data.items():
+        plot_community_count_vs_resolution(
+            data['resolutions'],
+            data['forest'],
+            data['senm'],
+            num_species,
+            filename=f'spectra/{num_species}_communities_vs_resolution.png',
+            show=False,
+            verbose=verbose
+        )
+
 

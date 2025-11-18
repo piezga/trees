@@ -5,9 +5,9 @@ import argparse
 import matplotlib.pyplot as plt
 import seaborn as sns
 from src.config import load_config
-from src.functions import *
+from src.utils import *
 from src.plotting import *
-from src.computing_functions import *
+from src.compute import *
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib
 import matplotlib.colors as mcolors
@@ -61,13 +61,18 @@ def parse_args():
         help='Task(s) to run: spectra, resolution-sweep, correlation, communities, or all (comma-separated)'
     )
     """
-    parser.add_argument('-c', '--calculate', action='store_true', help='Calculate instead of loading cached')
-    parser.add_argument('-v', '--verbose', action='store_true', help='Print verbose output')
+    parser.add_argument('-c', '--calculate', action='store_true', 
+                        help='Calculate instead of loading cached')
+    parser.add_argument('-v', '--verbose', action='store_true', 
+                        help='Print verbose output')
+    parser.add_argument('-s', '--supplementary', action='store_true', 
+                        help='Generate supplementary plots')
     return parser.parse_args()
 
 args = parse_args()
 calculate = args.calculate 
 verbose = args.verbose
+supplementary = args.supplementary
 print(f'Calculate set to {calculate}')
 
 
@@ -130,7 +135,7 @@ results_for_supplementary = []  # Will store all data needed for extra plots
 
 for idx, num_species in enumerate(species_array):
     if verbose:
-        print(f'Num species: {num_species} out of {species_array}')
+        print(f'\nNum species: {num_species} out of {species_array}')
     
     comm_diffs = []
     
@@ -209,66 +214,12 @@ plot_size_effect_panel(
 plt.show()
 
 
-"""
+# ================================================
+# === Supplementary plots ===
+# ================================================
 
-# ============================================
-# === Supplementary Plots ===
-# ============================================
-
-# Now generate all the supplementary plots using stored results
-for result in results_for_supplementary:
-    num_species = result['num_species']
-    resolution = result['resolution']
-    
-    # Plot spectra with MP bounds
-    plot_spectra_with_mp_bounds(
-        result['forest_spectrum'],
-        result['senm_spectrum'],
-        result['lambda_max_forest'],
-        result['lambda_max_senm'],
-        resolution,
-        num_species,
-        filename=f'spectra/{num_species}_species_resolution_{resolution}.png',
-        show=False,
-        verbose=verbose
-    )
-    
-    # Plot eigenvalue density
-    plot_eigenvalue_density_vs_mp(
-        result['forest_spectrum'],
-        result['senm_spectrum'],
-        result['bins'],
-        resolution,
-        num_species,
-        result['lambda_max_forest'],
-        result['lambda_max_senm'],
-        filename=f'spectra/{num_species}_species_density_resolution_{resolution}.png',
-        show=False,
-        verbose=verbose
-    )
-
-# Plot community count vs resolution for each species count
-# Group results by num_species
-from collections import defaultdict
-community_data = defaultdict(lambda: {'resolutions': [], 'forest': [], 'senm': []})
-
-for result in results_for_supplementary:
-    ns = result['num_species']
-    community_data[ns]['resolutions'].append(result['resolution'])
-    community_data[ns]['forest'].append(result['forest_communities'])
-    community_data[ns]['senm'].append(result['senm_communities'])
-
-for num_species, data in community_data.items():
-    plot_community_count_vs_resolution(
-        data['resolutions'],
-        data['forest'],
-        data['senm'],
-        num_species,
-        filename=f'spectra/{num_species}_communities_vs_resolution.png',
-        show=False,
-        verbose=verbose
-    )
-"""
+if supplementary:
+    supplementary_plots(results_for_supplementary, verbose)
 
 # ================================================
 # === Correlation Matrix Analysis ===

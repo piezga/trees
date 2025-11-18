@@ -2,195 +2,137 @@
 import numpy as np
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+import networkx as nx
+
 from scipy.interpolate import interp1d
+from scipy.linalg import expm
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
+from scipy.spatial.distance import squareform
+
 from src.config import load_config
+from src.utils import  *
 
-
+# === Load config ===
 config = load_config()
 
-# Extract SENM parameters
-nx = config['senm']['nx']
-ny = config['senm']['ny']
-nu = config['senm']['nu']         
+# === Parameters ===
+Nx = config['senm']['nx']
+Ny = config['senm']['ny']
+nu = config['senm']['nu']
 kernel = config['senm']['kernel']
 NUM_REALIZATIONS = config['senm']['num_realizations']
 
-# GRID
-forest_grid_width= config['grid']['forest']['width']
-forest_grid_height= config['grid']['forest']['height']
-senm_grid_width= config['grid']['senm']['width']
-senm_grid_height= config['grid']['senm']['height']
+forest_grid_width = config['grid']['forest']['width']
+forest_grid_height = config['grid']['forest']['height']
+senm_grid_width = config['grid']['senm']['width']
+senm_grid_height = config['grid']['senm']['height']
 
-
-# Templates
 senm_spatial_file_template = config['senm_templates']['spatial']
 simulations_path = config['senm_templates']['path']
 path_template = config['forests']['templates']['path_template']
 census_template = config['forests']['templates']['census_template']
 names_template = config['forests']['templates']['names_template']
+forest = 'barro'
+num_species = config['analysis']['num_species']
+species_array = config['analysis']['species_array']
+censuses = config['forests']['censuses']
 
-def get_forest_file(forest: str, census: int) -> str:
+
+
+
+# === Compute spectra ===
+def compute_spectra(resolution):
     """
-    Returns the formatted filename for the given forest and census.
-    Raises FileNotFoundError if the file doesn't exist.
-    """
-    # Map forest names to their templates
-    forest_templates = {
-        'wanang': wanang_template,
-        'barro': barro_template,
-    }
-    
-    # Check if forest is valid
-    if forest not in forest_templates:
-        raise ValueError(f"Unknown forest: '{forest}'. Expected one of: {list(forest_templates.keys())}")
-    
-    # Generate the filename
-    file = forest_templates[forest].format(census=census)
-    
-    # Check if file exists
-    if not os.path.exists(file):
-        raise FileNotFoundError(f"File not found: '{file}'. Please verify the census or template.")
-    
-    return file
-
-def load_forest_data(forest, census, num_species):
-    # Load main CSV data
-    df = pd.read_csv(
-        f"{path_template.format(forest=forest)}{census_template.format(forest=forest, census=census)}"
-    )
-
-    # Load names file (handling UTF-8 BOM)
-    names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=census)}"
-
-    try:
-        # Safely read lines and strip whitespace
-        with open(names_file, encoding='utf-8-sig') as f:
-            names = [line.strip() for line in f if line.strip()][:num_species]
-    except Exception as e:
-        raise RuntimeError(f"Error reading names file '{names_file}': {e}")
-
-    # Filter DataFrame to only top species
-    df = df[df['name'].isin(names)]
-    return df, names
-
-def load_senm_data(nx, ny, nu, kernel, realization):
-    """
-    Load SENM spatial data for a single realization.
-    
-    Parameters:
-    -----------
-    nx : int
-        Number of grid points in x-direction
-    ny : int
-        Number of grid points in y-direction
-    nu : float
-        Niche overlap parameter
-    kernel : str
-        Dispersal kernel type
-    realization : int
-        Realization number (1-based index)
-    simulations_path : str
-        Path to simulation data files
-        
-    Returns:
-    --------
-    pd.DataFrame
-        DataFrame with columns ['x', 'y', 'species_id']
-    """
-    file_name = senm_spatial_file_template.format(nx = nx,ny = ny,nu = nu ,
-                                                  kernel = kernel,realization = realization)
-    file_path = f"{simulations_path}{file_name}"
-    
-    try:
-        df = pd.DataFrame(np.loadtxt(file_path), 
-                         columns=['x', 'y', 'species_id'])
-        return df
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Simulation file not found at: {file_path}")
-    except Exception as e:
-        raise Exception(f"Error loading simulation data: {str(e)}")
-
-
-def get_top_species(df, N):
-    """
-    Returns the dataframe containing only the N most 
-    abundant species
+    All purpose computing function that returns the basic relevant
+    quantities at a given resolution
     """
 
-    # 1. Count occurrences of each species
-    species_counts = df['species_id'].value_counts()
-
-    # 2. Get the 100 most abundant species
-    top_N_species = species_counts.head(N).index
-
-    # 3. Filter the original DataFrame to keep only these species
-    filtered_df = df[df['species_id'].isin(top_N_species)]
     
-    return filtered_df
-
-def shuffle_labels(df):
-    """ 
-    Shuffles the labels inside of a DF
-    """
-    df_randomized = df.copy()
-    df_randomized['name'] = np.random.permutation(df['name'])  # Shuffle labels
-    return df_randomized
-
-def compute_abundance_matrix(num_species, df, n_bins_x, n_bins_y, data_type, standardize=False):
-    """Compute species abundance matrix.
+    n_bins_x = int(forest_grid_width / resolution)
+    n_bins_y = int(forest_grid_height / resolution)
+    n_bins_x_senm = int(senm_grid_width / resolution)
+    n_bins_y_senm = int(senm_grid_height / resolution)
     
-    Parameters
-    ----------
-    num_species : int
-        Number of species to include.
-    df : pandas.DataFrame
-        Input data with columns 'x', 'y', and a species identifier column.
-    n_bins_x, n_bins_y : int
-        Number of spatial bins in the x and y directions.
-    data_type : str
-        Either 'forest' or 'senm', determines grid dimensions and species column name.
-    standardize : bool, optional
-        If True, standardize each species’ abundance vector (z-score normalization).
-    """
+    bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
+
+    senm_mean, senm_std, senm_abundance = compute_mean_senm_spectrum(num_species, n_bins_x_senm, n_bins_y_senm, standardize=True)
+
+    forest_spectra = []
+    for census in censuses:
+        path = path_template.format(forest=forest)
+        os.makedirs(f"{path}plots", exist_ok=True)
+        df, names = load_forest_data(forest, census, num_species)
+        spectrum, forest_abundance = compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize = True)
+        forest_spectra.append(spectrum)
+
+    return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundance
+
+# === Helper function for community detection ===
+def detect_communities(corr_matrix, tau=1e-3, Th=1e-4, return_linkage=False):
+    """Detect communities from filtered correlation matrix using Laplacian diffusion clustering."""
+    corr_pos = np.copy(corr_matrix)
+    corr_pos[corr_pos < 0] = 0  # only positive correlations
+
+    # Build graph and Laplacian
+    G = nx.from_numpy_array(np.abs(corr_pos))
+    G.remove_edges_from(nx.selfloop_edges(G))
+    L = nx.laplacian_matrix(G).todense()
+
+    # Diffusion process
+    num = expm(-tau * L)
+    rho = num / np.trace(num)
+
+    # Symmetric distance matrix
+    Trho = np.copy(1.0 / rho)
+    Trho = np.tril(Trho) + np.triu(Trho.T, 1)
+    np.fill_diagonal(Trho, 0)
+
+    # Hierarchical clustering
+    dists = squareform(Trho)
+    linkage_matrix = linkage(dists, "ward")
+    linkage_matrix = linkage(dists / linkage_matrix[-1, 2], "ward")
+    CM = fcluster(linkage_matrix, t=Th, criterion="distance")
+
+    # Reorder matrix by community
+    idx = np.argsort(CM)
+    reordered = np.array([[corr_matrix[i][j] for j in idx] for i in idx])
     
-    if data_type == 'forest':
-        width = forest_grid_width
-        height = forest_grid_height
-    elif data_type == 'senm':
-        width = senm_grid_width
-        height = senm_grid_height
+    if return_linkage:
+        return reordered, CM, idx, linkage_matrix
     else:
-        raise ValueError("data_type must be either 'forest' or 'senm'")
+        return reordered, CM, idx
 
-    species_col = 'species_id' if data_type == 'senm' else 'name'
-
-    df = df.copy()
+def detect_communities_corr(corr_matrix, n_communities, return_linkage=False):
+    """
+    Detect communities using Ward hierarchical clustering on correlation-based distances
+    """
+    distance_matrix = np.sqrt(2 * (1 - np.abs(corr_matrix)))
+    distance_matrix = (distance_matrix + distance_matrix.T) / 2
+    np.fill_diagonal(distance_matrix, 0)
     
-    # Assign bins
-    df['x_bin'] = (df['x'] / (width / n_bins_x)).astype(int).clip(0, n_bins_x - 1)
-    df['y_bin'] = (df['y'] / (height / n_bins_y)).astype(int).clip(0, n_bins_y - 1)
+    dists = squareform(distance_matrix)
+    linkage_matrix = linkage(dists, method="ward")
     
-    # Initialize abundance matrix
-    abundance = np.zeros((num_species, n_bins_x * n_bins_y))
+    # Normalize linkage distances by maximum
+    linkage_matrix_norm = linkage_matrix.copy()
+    linkage_matrix_norm[:, 2] = linkage_matrix[:, 2] / linkage_matrix[-1, 2]
     
-    for i, (_, group) in enumerate(df.groupby(species_col)):
-        if i >= num_species:
-            break
-        bin_counts = group.groupby(['x_bin', 'y_bin']).size()
-        for (x, y), count in bin_counts.items():
-            abundance[i, x * n_bins_y + y] = count
+    # Cut dendrogram to get n_communities
+    CM = fcluster(linkage_matrix_norm, t=n_communities, criterion='maxclust')
     
-    # Standardize each row individually if requested
-    if standardize:
-        row_means = abundance.mean(axis=1, keepdims=True)
-        row_stds = abundance.std(axis=1, keepdims=True)
-        # Avoid division by zero
-        row_stds[row_stds == 0] = 1
-        abundance = (abundance - row_means) / row_stds
+    # Calculate the cut height for n_communities
+    n_samples = linkage_matrix_norm.shape[0] + 1
+    merge_index = n_samples - n_communities - 1
+    cut_height = linkage_matrix_norm[merge_index, 2] if merge_index >= 0 else 0
     
-    return abundance
+    # Reorder matrix by community
+    idx = np.argsort(CM)
+    reordered = np.array([[corr_matrix[i][j] for j in idx] for i in idx])
+    
+    if return_linkage:
+        return reordered, CM, idx, linkage_matrix_norm, cut_height
+    else:
+        return reordered, CM, idx
 
 def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y, standardize):
 
@@ -382,26 +324,6 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     squared_diff = np.sum((eigenvalues_A_above - eigenvalues_B_above) ** 2)/min_length
 
     return squared_diff, diff_communities
-
-def load_file_with_padding(filename, N, num_columns):
-    try:
-        data = np.loadtxt(filename, max_rows=N)
-
-        # Handle edge case: single row results in 1D array
-        if data.ndim == 1:
-            data = np.expand_dims(data, axis=0)
-
-        current_N = data.shape[0]
-
-        # Pad if needed
-        if current_N < N:
-            padding = np.zeros((N - current_N, num_columns))
-            data = np.vstack((data, padding))
-
-        return data
-
-    except Exception as e:
-        raise RuntimeError(f"Failed to load or pad file '{filename}': {e}")
 
 
 def MarchenkoPastur(C,N,T,remove_largest=True):
