@@ -17,7 +17,7 @@ senm_templates:
 
 # Real forest datasets
 forests:
-  name: ["barro"]
+  name: "barro"
   templates: 
     raw_data_template: "bcitree{census}.dat"
     path_template: "data/{forest}/"
@@ -39,6 +39,6 @@ grid:
 # Defaults for analysis
 analysis:
   num_species: 100
-  species_array: [100,150]
+  species_array: [100]
   resolutions: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
 

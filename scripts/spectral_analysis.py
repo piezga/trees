@@ -1,58 +1,33 @@
 import numpy as np
-import os
-import pandas as pd
 import argparse
-import matplotlib.pyplot as plt
-import seaborn as sns
-from src.config import load_config
-from src.utils import *
-from src.plotting import *
-from src.compute import *
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib
-import matplotlib.colors as mcolors
-import cmocean
-import networkx as nx
-from scipy.linalg import expm
-from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
-from scipy.spatial.distance import squareform
-import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+
+from src.config import load_config
+from src.compute import (
+    compute_spectra,
+    marchenko_pastur_bounds,
+    square_diff_above_MP,
+    number_of_communities,
+)
+from src.plotting import (
+    plot_dual_spectra_with_inset,
+    plot_size_effect_panel,
+    supplementary_plots,
+)
 
 matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
 
-
 # === Load config ===
 config = load_config()
-
-# === Parameters ===
-Nx = config['senm']['nx']
-Ny = config['senm']['ny']
-nu = config['senm']['nu']
-kernel = config['senm']['kernel']
-NUM_REALIZATIONS = config['senm']['num_realizations']
-
-forest_grid_width = config['grid']['forest']['width']
-forest_grid_height = config['grid']['forest']['height']
-senm_grid_width = config['grid']['senm']['width']
-senm_grid_height = config['grid']['senm']['height']
-
-senm_spatial_file_template = config['senm_templates']['spatial']
-simulations_path = config['senm_templates']['path']
-path_template = config['forests']['templates']['path_template']
-census_template = config['forests']['templates']['census_template']
-names_template = config['forests']['templates']['names_template']
-forest = 'barro'
+forest = config['forests']['name']  
 num_species = config['analysis']['num_species']
 species_array = config['analysis']['species_array']
-censuses = config['forests']['censuses']
-
-# Some parameters
-filter_resolution = 12
 
 # Argument parser 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Run paper plot analyses')
+    parser = argparse.ArgumentParser(description='Run spectral analyses')
     """ 
     parser.add_argument(
         '--task',
@@ -99,7 +74,7 @@ ax_a = ax_dict["A"]
 
 # Load or compute data for Panel A
 if calculate:
-    res_50_senm, res_50_senm_std, res_50_forest_list, _, _, _ = compute_spectra(50)
+    res_50_senm, res_50_senm_std, res_50_forest_list, _, _, _ = compute_spectra(50, calculate)
     np.save(f'quantities/barro_senm_std_{num_species}_50.npy', res_50_senm_std)
 else: 
     res_50_senm = np.load(f'quantities/{forest}_senm_spectrum_{num_species}_50.npy')
@@ -107,7 +82,7 @@ else:
     res_50_forest_list = np.load(f'quantities/{forest}_forest_spectra_{num_species}_50.npy')
 
 if calculate:
-    res_5_senm, res_5_senm_std, res_5_forest_list, _, _, _ = compute_spectra(5)
+    res_5_senm, res_5_senm_std, res_5_forest_list, _, _, _ = compute_spectra(5,calculate)
     np.save(f'quantities/barro_senm_std_{num_species}_5.npy', res_5_senm_std)
 else: 
     res_5_senm = np.load(f'quantities/{forest}_senm_spectrum_{num_species}_5.npy')
@@ -142,7 +117,7 @@ for idx, num_species in enumerate(species_array):
     for resolution in resolutions:
         # Load or compute spectra
         if calculate:
-            senm_spectrum, _, forest_spectra, bins, _, _ = compute_spectra(resolution)
+            senm_spectrum, _, forest_spectra, bins, _, _ = compute_spectra(resolution,calculate)
             np.save(f'quantities/{forest}_senm_spectrum_{num_species}_{resolution}.npy', senm_spectrum)
             np.save(f'quantities/{forest}_forest_spectra_{num_species}_{resolution}.npy', forest_spectra)
             np.save(f'quantities/{forest}_bins_{num_species}_{resolution}.npy', bins)
@@ -221,68 +196,3 @@ plt.show()
 if supplementary:
     supplementary_plots(results_for_supplementary, verbose)
 
-# ================================================
-# === Correlation Matrix Analysis ===
-# ================================================
-
-# Compute spectra and get abundance data
-_, _, _, bins, senm_abundance, forest_abundance = compute_spectra(filter_resolution)
-
-# Compute correlation matrices
-senm_corr = np.corrcoef(senm_abundance)
-forest_corr = np.corrcoef(forest_abundance)
-
-# Apply Marchenko-Pastur filter
-filtered_senm_corr = MarchenkoPastur(senm_corr, num_species, bins[0]*bins[1], remove_largest=False)
-filtered_forest_corr = MarchenkoPastur(forest_corr, num_species, bins[2]*bins[3], remove_largest=False)
-
-# Detect communities on filtered matrices (LAPLACIAN)
-tau = 1e-3
-Th = 1e-4
-
-"""
-
-senm_reordered, senm_CM, senm_idx, senm_linkage =detect_communities(filtered_senm_corr,
-                                                                    tau, Th,
-                                                                    return_linkage = True)
-forest_reordered, forest_CM, forest_idx, forest_linkage  = detect_communities(filtered_forest_corr,tau,Th,return_linkage = True)
-
-# Plot SENM correlation matrices
-plot_correlation_matrices_comparison(
-    senm_corr,
-    senm_reordered,
-    data_type='SENM',
-    filename='correlation_matrices_senm.png',
-    show=True
-)
-
-# Plot Forest correlation matrices
-plot_correlation_matrices_comparison(
-    forest_corr,
-    forest_reordered,
-    data_type='Forest',
-    filename='correlation_matrices_forest.png',
-    show=True
-)
-"""
-
-_, _, _, senm_linkage, senm_th = detect_communities_corr(filtered_senm_corr, 17, return_linkage = True)
-
-_, _, _, forest_linkage, forest_th = detect_communities_corr(filtered_forest_corr, 10, return_linkage = True)
-
-# Plot dendrograms
-plot_community_dendrogram(
-    senm_linkage,
-    threshold=senm_th,
-    title='SENM',
-    filename='dendrogram_senm.png',
-    show=True
-)
-
-plot_community_dendrogram(
-    forest_linkage,
-    threshold=forest_th,
-    title='Forest',
-    filename='dendrogram_forest.png',
-    show=True
-)

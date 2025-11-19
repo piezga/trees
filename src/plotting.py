@@ -4,6 +4,7 @@ import numpy as np
 import seaborn as sns
 import cmocean
 import matplotlib.colors as mcolors
+from matplotlib import patches
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from src.compute import marchenko_pastur_pdf, marchenko_pastur_bounds
 
@@ -639,4 +640,188 @@ def supplementary_plots(results_for_supplementary, verbose):
             verbose=verbose
         )
 
+def plot_community_comparison(
+    corr_matrix,
+    CM_method1,
+    CM_method2,
+    method1_name='Laplacian Diffusion',
+    method2_name='Ward Clustering',
+    cmap=None,
+    vmin=-0.5,
+    vmax=0.5,
+    figsize=(14, 6),
+    filename=None,
+    show=True
+):
+    """
+    Compare two community detection methods side-by-side.
+    
+    Parameters
+    ----------
+    corr_matrix : array
+        Original correlation matrix
+    CM_method1 : array
+        Community membership from first method
+    CM_method2 : array
+        Community membership from second method
+    method1_name : str
+        Name of first method
+    method2_name : str
+        Name of second method
+    cmap : matplotlib colormap, optional
+        Colormap for correlation matrix
+    vmin, vmax : float
+        Color scale limits
+    figsize : tuple
+        Figure size
+    filename : str, optional
+        Path to save figure
+    show : bool
+        Whether to display the plot
+        
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+    axes : array of matplotlib.axes.Axes
+    """
+    from src.compute import get_community_bounds
 
+    if cmap is None:
+        cmap = cmocean.cm.balance
+    
+    norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+    
+    fig, axes = plt.subplots(1, 2, figsize=figsize, constrained_layout=True)
+    
+    # Method 1: Reorder by communities
+    idx1 = np.argsort(CM_method1)
+    reordered1 = np.array([[corr_matrix[i][j] for j in idx1] for i in idx1])
+    
+    im1 = axes[0].imshow(reordered1, cmap=cmap, norm=norm)
+    axes[0].set_title(f"{method1_name}\n({len(np.unique(CM_method1))} communities)")
+    axes[0].set_xlabel("Species index")
+    axes[0].set_ylabel("Species index")
+    
+    # Add community boundaries for method 1
+    bounds1 = get_community_bounds(CM_method1[idx1])
+    draw_community_boxes(axes[0], bounds1)
+    
+    # Method 2: Reorder by communities
+    idx2 = np.argsort(CM_method2)
+    reordered2 = np.array([[corr_matrix[i][j] for j in idx2] for i in idx2])
+    
+    im2 = axes[1].imshow(reordered2, cmap=cmap, norm=norm)
+    axes[1].set_title(f"{method2_name}\n({len(np.unique(CM_method2))} communities)")
+    axes[1].set_xlabel("Species index")
+    axes[1].set_ylabel("Species index")
+    
+    # Add community boundaries for method 2
+    bounds2 = get_community_bounds(CM_method2[idx2])
+    draw_community_boxes(axes[1], bounds2)
+    
+    # Shared colorbar
+    fig.colorbar(im2, ax=axes, orientation="vertical", 
+                 fraction=0.03, pad=0.04, label="Correlation")
+    
+    if filename:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
+    
+    return fig, axes
+
+
+def draw_community_boxes(ax, bounds):
+    """Draw boxes around communities on a matrix plot."""
+    bounds = np.array(bounds)
+    bounds[0] += 0.2  # Small offset for visibility
+    bounds[-1] -= 0.2
+    
+    for n, edge in enumerate(np.diff(bounds)):
+        ax.add_patch(patches.Rectangle(
+            (bounds[n], bounds[n]),
+            edge, edge, 
+            fill=False, 
+            linewidth=1.5, 
+            ls='--',
+            edgecolor='black'
+        ))
+
+
+
+
+def plot_community_confusion_matrix(
+    CM_method1,
+    CM_method2,
+    method1_name='Method 1',
+    method2_name='Method 2',
+    figsize=(8, 6),
+    filename=None,
+    show=True
+):
+    """
+    Plot confusion matrix showing overlap between two community assignments.
+    
+    Parameters
+    ----------
+    CM_method1 : array
+        Community membership from first method
+    CM_method2 : array
+        Community membership from second method
+    method1_name : str
+        Name of first method
+    method2_name : str
+        Name of second method
+    figsize : tuple
+        Figure size
+    filename : str, optional
+        Path to save figure
+    show : bool
+        Whether to display the plot
+        
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
+    ari : float
+        Adjusted Rand Index
+    """
+    from src.compute import compute_community_overlap
+
+    ari, confusion = compute_community_overlap(CM_method1, CM_method2)
+    
+    fig, ax = plt.subplots(figsize=figsize)
+    
+    im = ax.imshow(confusion, cmap='Blues', aspect='auto')
+    
+    # Add text annotations
+    for i in range(confusion.shape[0]):
+        for j in range(confusion.shape[1]):
+            text = ax.text(j, i, confusion[i, j],
+                          ha="center", va="center", color="black")
+    
+    ax.set_xlabel(f"{method2_name} Communities")
+    ax.set_ylabel(f"{method1_name} Communities")
+    ax.set_title(f"Community Overlap (ARI = {ari:.3f})")
+    
+    # Set ticks
+    ax.set_xticks(np.arange(confusion.shape[1]))
+    ax.set_yticks(np.arange(confusion.shape[0]))
+    ax.set_xticklabels(np.arange(1, confusion.shape[1] + 1))
+    ax.set_yticklabels(np.arange(1, confusion.shape[0] + 1))
+    
+    plt.colorbar(im, ax=ax, label="Number of species")
+    plt.tight_layout()
+    
+    if filename:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+    
+    if show:
+        plt.show()
+    else:
+        plt.close()
+    
+    return fig, ax, ari

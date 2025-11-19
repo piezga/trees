@@ -31,3 +31,14 @@ Guardare la differenza del numero di comunità individuate sembra essere la stra
 Intanto c'è da controllare il risultato e rendere il plot bello.
 Poi si potrebbero provare diversi tipi di clustering, incluso uno fatto soltanto sulla correlation distance
 (ovvero senza laplaciano).
+
+#  19//11/25
+
+Issues:
+- Ward sembra trovare delle community poco correlate se forzo il numero
+- Il laplaciano sembra funzionare male sotto i 10 m
+- Nei supplementary plots degli spettri qualcosa va storto quando cambio il numero di specie
+
+To do:
+- Capire precisamente quale analisi fare
+- Farle

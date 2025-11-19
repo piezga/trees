@@ -10,8 +10,8 @@ from src.config import load_config
 config = load_config()
 
 # Extract SENM parameters
-nx = config['senm']['nx']
-ny = config['senm']['ny']
+Nx = config['senm']['nx']
+Ny = config['senm']['ny']
 nu = config['senm']['nu']         
 kernel = config['senm']['kernel']
 NUM_REALIZATIONS = config['senm']['num_realizations']
@@ -74,15 +74,15 @@ def load_forest_data(forest, census, num_species):
     df = df[df['name'].isin(names)]
     return df, names
 
-def load_senm_data(nx, ny, nu, kernel, realization):
+def load_senm_data(Nx, Ny, nu, kernel, realization):
     """
     Load SENM spatial data for a single realization.
     
     Parameters:
     -----------
-    nx : int
+    Nx : int
         Number of grid points in x-direction
-    ny : int
+    Ny : int
         Number of grid points in y-direction
     nu : float
         Niche overlap parameter
@@ -98,7 +98,7 @@ def load_senm_data(nx, ny, nu, kernel, realization):
     pd.DataFrame
         DataFrame with columns ['x', 'y', 'species_id']
     """
-    file_name = senm_spatial_file_template.format(nx = nx,ny = ny,nu = nu ,
+    file_name = senm_spatial_file_template.format(nx = Nx,ny = Ny,nu = nu ,
                                                   kernel = kernel,realization = realization)
     file_path = f"{simulations_path}{file_name}"
     
@@ -210,5 +210,48 @@ def load_file_with_padding(filename, N, num_columns):
 
     except Exception as e:
         raise RuntimeError(f"Failed to load or pad file '{filename}': {e}")
+
+def print_community_membership_comparison(
+    CM_method1,
+    CM_method2,
+    species_names=None,
+    method1_name='Method 1',
+    method2_name='Method 2'
+):
+    """
+    Print a comparison table showing which species belong to which communities.
+    
+    Parameters
+    ----------
+    CM_method1 : array
+        Community membership from first method
+    CM_method2 : array
+        Community membership from second method
+    species_names : list, optional
+        Names of species (if None, uses indices)
+    method1_name : str
+        Name of first method
+    method2_name : str
+        Name of second method
+    """
+    n_species = len(CM_method1)
+    
+    if species_names is None:
+        species_names = [f"Species_{i+1}" for i in range(n_species)]
+    
+    print(f"\n{'='*80}")
+    print(f"Community Membership Comparison")
+    print(f"{'='*80}")
+    print(f"{'Species':<20} | {method1_name:<20} | {method2_name:<20}")
+    print(f"{'-'*80}")
+    
+    for i in range(n_species):
+        print(f"{species_names[i]:<20} | Community {CM_method1[i]:<14} | Community {CM_method2[i]:<14}")
+    
+    print(f"\n{'='*80}")
+    print(f"Summary:")
+    print(f"  {method1_name}: {len(np.unique(CM_method1))} communities")
+    print(f"  {method2_name}: {len(np.unique(CM_method2))} communities")
+    print(f"{'='*80}\n")
 
 

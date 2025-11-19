@@ -41,34 +41,33 @@ censuses = config['forests']['censuses']
 
 
 # === Compute spectra ===
-def compute_spectra(resolution):
+def compute_spectra(resolution, calculate):
     """
     All purpose computing function that returns the basic relevant
     quantities at a given resolution
     """
+    if calculate:
 
-    
-    n_bins_x = int(forest_grid_width / resolution)
-    n_bins_y = int(forest_grid_height / resolution)
-    n_bins_x_senm = int(senm_grid_width / resolution)
-    n_bins_y_senm = int(senm_grid_height / resolution)
-    
-    bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
+        n_bins_x = int(forest_grid_width / resolution)
+        n_bins_y = int(forest_grid_height / resolution)
+        n_bins_x_senm = int(senm_grid_width / resolution)
+        n_bins_y_senm = int(senm_grid_height / resolution)
+        
+        bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
 
-    senm_mean, senm_std, senm_abundance = compute_mean_senm_spectrum(num_species, n_bins_x_senm, n_bins_y_senm, standardize=True)
+        senm_mean, senm_std, senm_abundance = compute_mean_senm_spectrum(num_species, n_bins_x_senm, n_bins_y_senm, standardize=True)
 
-    forest_spectra = []
-    for census in censuses:
-        path = path_template.format(forest=forest)
-        os.makedirs(f"{path}plots", exist_ok=True)
-        df, names = load_forest_data(forest, census, num_species)
-        spectrum, forest_abundance = compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize = True)
-        forest_spectra.append(spectrum)
+        forest_spectra = []
+        for census in censuses:
+            path = path_template.format(forest=forest)
+            os.makedirs(f"{path}plots", exist_ok=True)
+            df, names = load_forest_data(forest, census, num_species)
+            spectrum, forest_abundance = compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize = True)
+            forest_spectra.append(spectrum)
 
     return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundance
 
-# === Helper function for community detection ===
-def detect_communities(corr_matrix, tau=1e-3, Th=1e-4, return_linkage=False):
+def L_detect_communities(corr_matrix, tau=1e-3, Th=1e-4, return_linkage=False):
     """Detect communities from filtered correlation matrix using Laplacian diffusion clustering."""
     corr_pos = np.copy(corr_matrix)
     corr_pos[corr_pos < 0] = 0  # only positive correlations
@@ -140,7 +139,7 @@ def compute_mean_senm_spectrum(num_species,n_bins_x, n_bins_y, standardize):
 
     eig_matrix = np.zeros((NUM_REALIZATIONS, num_species))
     for realization in range(NUM_REALIZATIONS):
-        df = load_senm_data(nx, ny, nu, kernel, realization + 1)
+        df = load_senm_data(Nx, Ny, nu, kernel, realization + 1)
         df_top_N = get_top_species(df,num_species) 
         abundance = compute_abundance_matrix(num_species,df_top_N, n_bins_x, n_bins_y, data_type = 'senm', standardize=standardize)
         corr = np.nan_to_num(np.corrcoef(abundance), nan=0)
@@ -370,3 +369,47 @@ def MarchenkoPastur(C,N,T,remove_largest=True):
 
     C_new = v_signal.dot(np.diag(w_signal)).dot(v_signal.T)
     return C_new
+
+
+def get_community_bounds(sorted_CM):
+    """Get boundary positions for community boxes."""
+    bounds = [0]
+    current_comm = sorted_CM[0]
+    
+    for i, comm in enumerate(sorted_CM):
+        if comm != current_comm:
+            bounds.append(i)
+            current_comm = comm
+    
+    bounds.append(len(sorted_CM))
+    return bounds
+
+def compute_community_overlap(CM_method1, CM_method2):
+    """
+    Compute overlap/agreement between two community assignments.
+    
+    Uses Adjusted Rand Index (ARI) to measure similarity.
+    ARI = 1 means perfect agreement, 0 means random, negative means worse than random.
+    
+    Parameters
+    ----------
+    CM_method1 : array
+        Community membership from first method
+    CM_method2 : array
+        Community membership from second method
+        
+    Returns
+    -------
+    ari : float
+        Adjusted Rand Index
+    confusion : array
+        Confusion matrix showing overlap between communities
+    """
+    from sklearn.metrics import adjusted_rand_score, confusion_matrix
+    
+    ari = adjusted_rand_score(CM_method1, CM_method2)
+    confusion = confusion_matrix(CM_method1, CM_method2)
+    
+    return ari, confusion
+
+
