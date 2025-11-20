@@ -11,7 +11,11 @@ Oddly enough Wanang seems to follow the opposite size scaling with respect to Ba
 
 Riguardo a wanang e agli alberi non etichettati, provo a proporvi un'argomentazione:
 
-Assumendo che gli alberi "unknown" siano distribuiti con la stessa distribuzione di quelli etichettati (magari sono ancora giovani e difficili da distinguere), rimuovere una porzione significativa di alberi (40%) equivale a riscalare le distanze, perché rende gli alberi artificialmente più distanti tra di loro. Questo potrebbe spiegare il fatto che il minimo della curva si trovi a distanze molto più piccole rispetto a barro: i 9-10 metri sono in realtà 13-14.
+Assumendo che gli alberi "unknown" siano distribuiti con la stessa distribuzione di quelli 
+etichettati (magari sono ancora giovani e difficili da distinguere), rimuovere una porzione 
+significativa di alberi (40%) equivale a riscalare le distanze, perché rende gli alberi 
+artificialmente più distanti tra di loro. Questo potrebbe spiegare il fatto che il minimo 
+della curva si trovi a distanze molto più piccole rispetto a barro: i 9-10 metri sono in realtà 13-14.
 
 ## 14/10/25
 
@@ -42,3 +46,23 @@ Issues:
 To do:
 - Capire precisamente quale analisi fare
 - Farle
+
+#20/11/25
+
+Fare uno studio approfondito dei dettagli di base del lavoro.
+
+Domande:
+1) I sample sono standardizzati bene? La funzione di numpy come funziona esattamente?
+
+2) Gli L samples (NxL) sono i.i.d. distribuiti secondo una gaussiana multivariata la 
+   cui matrice vera di correlazione è C?
+
+    Questa è un'assunzione 
+
+3) Si può fare una covariance selection (impose sparsity) per ridurre il numero dei
+   parametri da stimare? (problema di L non grande rispetto a N)
+
+4) C'è una global mode? 
+
+Risposte:
+

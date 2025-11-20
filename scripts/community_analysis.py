@@ -13,7 +13,6 @@ matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
 # === Load config ===
 config = load_config()
 
-
 # Argument parser
 
 def parse_args():

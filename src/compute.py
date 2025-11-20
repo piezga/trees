@@ -55,14 +55,23 @@ def compute_spectra(resolution, calculate):
         
         bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
 
-        senm_mean, senm_std, senm_abundance = compute_mean_senm_spectrum(num_species, n_bins_x_senm, n_bins_y_senm, standardize=True)
+        (senm_mean, 
+         senm_std, senm_abundance) = compute_mean_senm_spectrum(num_species, 
+                                                                n_bins_x_senm, 
+                                                                n_bins_y_senm, 
+                                                                standardize=True)
 
         forest_spectra = []
         for census in censuses:
             path = path_template.format(forest=forest)
             os.makedirs(f"{path}plots", exist_ok=True)
             df, names = load_forest_data(forest, census, num_species)
-            spectrum, forest_abundance = compute_forest_spectrum(df, names, n_bins_x, n_bins_y, standardize = True)
+            (spectrum, 
+             forest_abundance) = compute_forest_spectrum(df, 
+                                                         names, 
+                                                         n_bins_x, 
+                                                         n_bins_y, 
+                                                         standardize = True)
             forest_spectra.append(spectrum)
 
     return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundance
@@ -325,7 +334,7 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     return squared_diff, diff_communities
 
 
-def MarchenkoPastur(C,N,T,remove_largest=True):
+def MarchenkoPastur(C,N,T,remove_largest=True,remove_small=True):
     """Uses Marchenko-Pastur law to remove noise.
         remove_largest (bool), optional
             If ``False``, all the eigenvectors associated to the
@@ -358,8 +367,12 @@ def MarchenkoPastur(C,N,T,remove_largest=True):
     
     w_min = 1 + 1 / Q - 2 * np.sqrt(1 / Q)
     w_max = 1 + 1 / Q + 2 * np.sqrt(1 / Q)
-
-    selected = (w < w_min) | (w > w_max)
+    
+    if remove_small:
+        selected = w > w_max
+    else:
+        selected = (w < w_min) | (w > w_max)
+        
 
     if remove_largest:
         selected[-1] = False
