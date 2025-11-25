@@ -7,10 +7,10 @@ import os
 from src.config import load_config
 from src.compute import (
         compute_spectra, MarchenkoPastur, L_detect_communities,
-        marchenko_pastur_pdf
+        marchenko_pastur_pdf, detect_communities_corr
         )
 from src. plotting import (
-    plot_correlation_matrices_comparison)
+    plot_correlation_matrices_comparison, plot_community_dendrogram)
 #matplotlib.use('TkAgg')  # Switch from Qt to Tkinter backend
 
 # === Load config ===
@@ -20,7 +20,6 @@ num_species = config['analysis']['num_species']
 # === Pick resolution ===
 rng = np.random.default_rng()
 resolution = int(rng.integers(5,33))
-resolution = 6
 print(f'Testing for resolution {resolution} m ')
 
 (senm_mean, senm_std, forest_spectra, 
@@ -121,7 +120,7 @@ plt.colorbar(axes[1, 1].imshow(filtered_forest_corr2, cmap='coolwarm', aspect='a
 
 # Adjust layout to make sure the plots are spaced nicely
 plt.tight_layout()
-plt.show()
+#plt.show()
 
 
 # Ensure output directory exists
@@ -231,7 +230,13 @@ for name, M in matrices.items():
     outliers = eigvals[(eigvals < lambda_min) | (eigvals > lambda_max)]
     above = eigvals[ eigvals > lambda_max]
     print(f"Number of outliers outside MP bounds: {len(outliers)}")
+    print("Should be 100!")
     print(f"Number of outliers above MP bounds: {len(above)}")
+    # Saving the n_communities for later
+    if 'senm_keep' in name:
+        n_comms_senm = len(above)
+    elif 'forest_keep' in name:
+        n_comms_forest = len(above)
 
     # ====================
     # 4. Leading eigenvector plot
@@ -273,42 +278,60 @@ plt.tight_layout()
 plt.savefig(f"{plot_dir}/comparison_all_scree.png", dpi=200)
 plt.close()
 
-print(f"\nAll spectral plots saved to: {plot_dir}")
+print(f"\nAll spectral plots saved to: {plot_dir}\n")
 
-"""
-# === Laplacian checks === 
+# === Community analysis | Macmahon&Garlaschelli ===
 
+# The matrices are already filtered (MP)
+# We are also considering the small eigenvalues
 
-tau = 1e-3
-Th = 1e-4
-
-
-(senm_reordered, senm_CM, 
- senm_idx, senm_linkage) = L_detect_communities(filtered_senm_corr,
-                                                tau, Th,
-                                                return_linkage = True)
-(forest_reordered, forest_CM, 
- forest_idx, forest_linkage)  = L_detect_communities(filtered_forest_corr,
-                                                     tau,Th,
-                                                     return_linkage = True)
-
-# Plot SENM correlation matrices
-plot_correlation_matrices_comparison(
-    senm_corr,
-    senm_reordered,
-    data_type='SENM',
-    filename='correlation_matrices_senm.png',
-    show=True
-)
-
-# Plot Forest correlation matrices
-plot_correlation_matrices_comparison(
-    forest_corr,
-    forest_reordered,
-    data_type='Forest',
-    filename='correlation_matrices_forest.png',
-    show=True
-)
+senm_matrix = filtered_senm_corr
+forest_matrix = filtered_forest_corr
 
 
-"""
+# Here we turn the filtered matrix into a distance matrix forcing N communities
+print(f'We are looking for {n_comms_senm} communities in SENM')
+print(f'We are looking for {n_comms_forest} communities in FOREST')
+
+# === Used methods===
+methods = ['ward','average', 'single', 'complete', 'weighted']
+
+for method in methods:
+# SENM community detection
+    
+    print(f'Testing method: {method}')
+    (senm_reordered, senm_fcluster, senm_idx,
+     senm_linkage_matrix, 
+     senm_cut_height) = detect_communities_corr(senm_matrix,                                                                    n_comms_senm, return_linkage = True,
+                                                method = method)
+    print(f"\n--- SENM Community Detection Results ---")
+    print(f"• Communities detected in the SENM matrix: {n_comms_senm}")
+    print(f"• Reordered SENM matrix shape: {senm_reordered.shape}")
+    print(f"• Number of clusters in SENM: {len(set(senm_fcluster))} unique clusters detected.")
+    print(f"• Community detection linkage matrix (SENM) shape: {senm_linkage_matrix.shape}")
+    print(f"• Cutting height for the dendrogram: {senm_cut_height:.3f}")
+    print(f"--------------------------------------------\n")
+
+# Plot the dendrogram
+    plot_community_dendrogram(senm_linkage_matrix,threshold=senm_cut_height,
+                              title = 'SENM + ' + method,
+                              filename=f'dendrograms/senm_{method}.png')
+# Forest community detection
+
+    (forest_reordered, forest_fcluster, forest_idx,
+     forest_linkage_matrix, 
+     forest_cut_height) = detect_communities_corr(forest_matrix, n_comms_forest,
+                                                  return_linkage = True,
+                                                  method = method)
+    # After community detection for FOREST
+    print(f"\n--- FOREST Community Detection Results ---")
+    print(f"• Communities detected in the FOREST matrix: {n_comms_forest}")
+    print(f"• Reordered FOREST matrix shape: {forest_reordered.shape}")
+    print(f"• Number of clusters in FOREST: {len(set(forest_fcluster))} unique clusters detected.")
+    print(f"• Community detection linkage matrix (FOREST) shape: {forest_linkage_matrix.shape}")
+    print(f"• Cutting height for the dendrogram: {forest_cut_height:.3f}")
+    print(f"-------------------------------------------\n")
+
+    plot_community_dendrogram(forest_linkage_matrix,threshold=forest_cut_height,
+                              title = 'Forest + ' + method,
+                              filename=f'dendrograms/forest_{method}.png')

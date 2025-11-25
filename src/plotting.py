@@ -435,150 +435,64 @@ def plot_correlation_matrices_comparison(
 
 from scipy.cluster.hierarchy import dendrogram
 
-def plot_community_dendrogram(
-    linkage_matrix,
-    threshold=1e-4,
-    ax=None,
-    orientation='top',
-    leaf_rotation=0,
-    leaf_font_size=10,
-    color_threshold_color='#ED2939',
-    figsize=(8, 6),
-    normalize=True,
-    title=None,
-    ylabel=r'$D/D_{max}$',
-    xlabel='Node index',
-    ylim_padding=(0.2, 0.2),  # Changed to symmetric padding
-    ylim_auto=True,  # New parameter
-    ylim_manual=None,  # New parameter for manual override
-    filename=None,
-    show=True
-):
+
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram
+
+def plot_community_dendrogram(linkage_matrix, 
+                              threshold=1e-4, figsize=(8, 6), 
+                              title=None, show=True, filename=None):
     """
-    Plot hierarchical clustering dendrogram with custom styling.
+    Simplified version of the dendrogram plotter for visualizing the clustering process.
     
-    Parameters
+    Parameters:
     ----------
     linkage_matrix : array
         Linkage matrix from scipy.cluster.hierarchy.linkage
     threshold : float
         Distance threshold for cutting the dendrogram (horizontal line)
-    ax : matplotlib.axes.Axes, optional
-        Axes to plot on
-    orientation : str
-        Dendrogram orientation ('top', 'bottom', 'left', 'right')
-    leaf_rotation : float
-        Rotation angle for leaf labels
-    leaf_font_size : int
-        Font size for leaf labels
-    color_threshold_color : str
-        Color for the threshold line
     figsize : tuple
-        Figure size if ax is None
-    normalize : bool
-        If True, normalize linkage distances by maximum distance
+        Figure size
     title : str, optional
         Plot title
-    ylabel : str
-        Y-axis label
-    xlabel : str
-        X-axis label
-    ylim_padding : tuple
-        (bottom_padding_fraction, top_padding_fraction) for y-axis limits
-    ylim_auto : bool
-        If True, automatically determine y-limits based on data range
-    ylim_manual : tuple, optional
-        Manual (ymin, ymax) override. Takes precedence over ylim_auto
-    filename : str, optional
-        Path to save figure
     show : bool
         Whether to display the plot
-        
-    Returns
+    
+    Returns:
     -------
     ax : matplotlib.axes.Axes
-    dendrogram_dict : dict
-        Dictionary of data structures computed to render the dendrogram
+        Axes of the generated plot
     """
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize)
-    
-    # Normalize linkage matrix if requested
-    if normalize:
-        linkage_normalized = linkage_matrix.copy()
-        tmax = linkage_matrix[:, 2][-1]
-        linkage_normalized[:, 2] = linkage_matrix[:, 2] / tmax
-    else:
-        linkage_normalized = linkage_matrix
-    
-    # Create labels
-    n_samples = linkage_matrix.shape[0] + 1
-    labelList = [i + 1 for i in range(n_samples)]
-    
-    # Plot dendrogram
+    # Create the plot
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Add some small values to avoid zeros
+    linkage_matrix[:, 2] += 1e-6  # Add a small value to avoid log(0)
+    threshold += 1e-5
+    # Generate dendrogram
     dendrogram_dict = dendrogram(
-        linkage_normalized,
-        labels=labelList,
-        ax=ax,
-        leaf_rotation=leaf_rotation,
-        orientation=orientation,
-        color_threshold=threshold,
-        above_threshold_color='k',
-        leaf_font_size=leaf_font_size
+        linkage_matrix, 
+        ax=ax, 
+        color_threshold=threshold,  # Highlight the threshold cut
+        above_threshold_color='k'  # Color above the threshold (clusters)
     )
-    
-    # Set y-axis limits
-    if ylim_manual is not None:
-        # Manual override
-        ax.set_ylim(ylim_manual)
-    elif ylim_auto:
-        # Automatic: base on actual data range
-        distances = linkage_normalized[:, 2]
-        dmin = distances[0]  # Minimum distance
-        dmax = distances[-1]  # Maximum distance
-        
-        # Use log-scale aware padding
-        # In log space, we want to add/subtract a fraction of the log range
-        log_dmin = np.log10(max(dmin, 1e-10))  # Avoid log(0)
-        log_dmax = np.log10(dmax)
-        log_range = log_dmax - log_dmin
-        
-        # Add padding in log space
-        ymin = 10 ** (log_dmin - ylim_padding[0] * log_range)
-        ymax = 10 ** (log_dmax + ylim_padding[1] * log_range)
-        
-        ax.set_ylim(ymin, ymax)
-    else:
-        # Old behavior: use fixed padding
-        tmin = linkage_normalized[:, 2][0] - ylim_padding[0] * linkage_normalized[:, 2][0]
-        tmax = linkage_normalized[:, 2][-1] + ylim_padding[1] * linkage_normalized[:, 2][-1]
-        ax.set_ylim(tmin, tmax)
-    
-    # Add threshold line
-    ax.axhline(y=threshold, color=color_threshold_color, linestyle='--', linewidth=2, 
-               label=f'Cut threshold')
+   
+    # Plot the cut threshold line slightly above
+    ax.axhline(y=threshold, color='r', linestyle='--', label=f'Cut threshold ({threshold})')
     
     # Labels and styling
     if title:
         ax.set_title(title)
-    ax.set_ylabel(ylabel)
-    ax.set_xlabel(xlabel)
-    ax.set_yscale('log')
-    
-    # Set y-ticks dynamically based on the actual range
-    current_ylim = ax.get_ylim()
-    # Generate reasonable tick positions in log scale
-    log_ymin = np.floor(np.log10(current_ylim[0]))
-    log_ymax = np.ceil(np.log10(current_ylim[1]))
-    yticks = [10**i for i in range(int(log_ymin), int(log_ymax) + 1)]
-    ax.set_yticks(yticks)
-    
-    ax.set_xticks([])  # Remove x-ticks as in the example
-    ax.legend(loc='best', fontsize=10)
-    
     if filename:
         plt.savefig(filename, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {filename}")
+
+    ax.set_xlabel('Node index')
+    ax.set_ylabel('Distance')
+    # Display legend
+    ax.legend(loc='best')
     
+    # Show the plot if required
     if show:
         plt.show()
     

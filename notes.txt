@@ -55,17 +55,22 @@ Domande:
 1) I sample sono standardizzati bene? La funzione di numpy come funziona esattamente?
   
   Sono standardizzati bene e la funzione funziona come deve funzionare. Tra l'altro
-  non cambia nulla se i dati sono standardizzati o meno
+  non cambia nulla per la funzione np.corr se i dati sono standardizzati o meno 
 
 2) Gli L samples (NxL) sono i.i.d. distribuiti secondo una gaussiana multivariata la 
    cui matrice vera di correlazione è C?
 
-    Questa è un'assunzione 
+    Questa è un'assunzione (?)
 
 3) Si può fare una covariance selection (impose sparsity) per ridurre il numero dei
    parametri da stimare? (problema di L non grande rispetto a N)
 
+   Magari vediamo dopo. Questi sono dati reali, non un modello
+
 4) C'è una global mode? 
+   
+   No
 
-Risposte:
+#  24/11/25
 
+I metodi di clustering sembrano fare quasi tutti schifo a parte ward e forse un altro

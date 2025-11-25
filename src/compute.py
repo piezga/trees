@@ -110,7 +110,8 @@ def L_detect_communities(corr_matrix, tau=1e-3, Th=1e-4, return_linkage=False):
     else:
         return reordered, CM, idx
 
-def detect_communities_corr(corr_matrix, n_communities, return_linkage=False):
+def detect_communities_corr(corr_matrix, n_communities, return_linkage=False,
+                            method='ward'):
     """
     Detect communities using Ward hierarchical clustering on correlation-based distances
     """
@@ -119,7 +120,7 @@ def detect_communities_corr(corr_matrix, n_communities, return_linkage=False):
     np.fill_diagonal(distance_matrix, 0)
     
     dists = squareform(distance_matrix)
-    linkage_matrix = linkage(dists, method="ward")
+    linkage_matrix = linkage(dists, method=method)
     
     # Normalize linkage distances by maximum
     linkage_matrix_norm = linkage_matrix.copy()
@@ -334,7 +335,7 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     return squared_diff, diff_communities
 
 
-def MarchenkoPastur(C,N,T,remove_largest=True,remove_small=True):
+def MarchenkoPastur(C,N,T,remove_largest=True,remove_small=False):
     """Uses Marchenko-Pastur law to remove noise.
         remove_largest (bool), optional
             If ``False``, all the eigenvectors associated to the
