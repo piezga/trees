@@ -846,7 +846,7 @@ def plot_community_data(
                 species_data['x'], species_data['y'],
                 label=species_name,
                 color=colors(i),
-                s=10
+                s=1
             )
 
     # Labels, legend, etc.
@@ -863,4 +863,59 @@ def plot_community_data(
 
     print(f"Plot for Community {community_id} saved to {plot_file}")
 
+def plot_corr_with_communities(
+    corr_matrix,
+    communities,
+    outfile,
+    cmap=None,
+    vmin=-0.5,
+    vmax=0.5,
+    show=False
+):
+    """
+    Plot a *single* filtered correlation matrix reordered by community
+    and draw boxes around communities.
+    """
+    from src.compute import get_community_bounds
+    if cmap is None:
+        cmap = cmocean.cm.balance
 
+    # Sort indices by community label
+    order = np.argsort(communities)
+    corr_reordered = corr_matrix[np.ix_(order, order)]
+
+    # Prepare figure
+    plt.figure(figsize=(7, 6))
+    norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+
+    # Plot matrix
+    im = plt.imshow(corr_reordered, cmap=cmap, norm=norm)
+    plt.title(f"Filtered Correlation Matrix\n({len(np.unique(communities))} communities)")
+    plt.xlabel("Species (reordered)")
+    plt.ylabel("Species (reordered)")
+
+    # Determine boundaries
+    bounds = get_community_bounds(communities[order])
+
+    # Draw community boundary boxes
+    for b0, b1 in zip(bounds[:-1], bounds[1:]):
+        size = b1 - b0
+        rect = patches.Rectangle(
+            (b0, b0), size, size,
+            fill=False, linewidth=1.5, linestyle='--', edgecolor='black'
+        )
+        plt.gca().add_patch(rect)
+
+    # Add colorbar
+    plt.colorbar(im, label="Correlation", fraction=0.046, pad=0.04)
+
+    # Save
+    os.makedirs(os.path.dirname(outfile), exist_ok=True)
+    plt.savefig(outfile, dpi=300, bbox_inches="tight")
+
+    if show:
+        plt.show()
+    else:
+        plt.close()
+
+    print(f"Filtered correlation matrix with communities saved to:\n{outfile}")

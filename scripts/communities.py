@@ -10,7 +10,8 @@ from src.compute import (
         )
 from src.plotting import (
     plot_community_dendrogram,
-    plot_community_data
+    plot_community_data,
+    plot_corr_with_communities
     )
 from src.utils import load_forest_data
 
@@ -23,7 +24,7 @@ census_template = config['forests']['templates']['census_template']
 names_template = config['forests']['templates']['names_template']
 
 # Parameters
-resolution = 10
+resolution = 5
 print(f'Testing for resolution {resolution} m ')
 n_comms_forest = 10
 method = 'ward'
@@ -104,4 +105,15 @@ for community_id, species_list in communities.items():
     
     # Plot and save the community data
     plot_community_data('barro', 4, community_id, species_indices)
+
+# Plot community matrix
+outfile = os.path.join(output_dir, f"filtered_corr_reordered_{method}.png")
+
+plot_corr_with_communities(
+    filtered_forest_corr,
+    forest_fcluster,
+    outfile=outfile,
+    show=True
+)
+
 
