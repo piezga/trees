@@ -42,6 +42,7 @@ Issues:
 - Ward sembra trovare delle community poco correlate se forzo il numero
 - Il laplaciano sembra funzionare male sotto i 10 m
 - Nei supplementary plots degli spettri qualcosa va storto quando cambio il numero di specie
+  (questo è semplicemente un bug del codice)
 
 To do:
 - Capire precisamente quale analisi fare
@@ -74,3 +75,10 @@ Domande:
 #  24/11/25
 
 I metodi di clustering sembrano fare quasi tutti schifo a parte ward e forse un altro
+
+#  1/12/25
+
+C'è il problema che le 100 specie di Barro non sono sempre nello stesso ordine. 
+Una possibile soluzione è quella di scegliere le 100 più abbondanti una sola volta
+(tipo censimento numero 4 che è a metà) e poi filtrare sempre quelle mettendole in ordine
+alfabetico.

@@ -4,6 +4,7 @@ import numpy as np
 import seaborn as sns
 import cmocean
 import matplotlib.colors as mcolors
+import os
 from matplotlib import patches
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from src.compute import marchenko_pastur_pdf, marchenko_pastur_bounds
@@ -441,7 +442,7 @@ from scipy.cluster.hierarchy import dendrogram
 
 def plot_community_dendrogram(linkage_matrix, 
                               threshold=1e-4, figsize=(8, 6), 
-                              title=None, show=True, filename=None):
+                              title=None, show=False, filename=None):
     """
     Simplified version of the dendrogram plotter for visualizing the clustering process.
     
@@ -739,3 +740,127 @@ def plot_community_confusion_matrix(
         plt.close()
     
     return fig, ax, ari
+
+
+def plot_correlation_stability(all_correlations, avg_correlation, forest_corr_std, censuses, filename=None):
+    """
+    Show how correlations vary across censuses.
+    """
+    from src.utils import load_forest_data
+    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    axes = axes.flatten()
+    
+    vmin, vmax = -0.5, 0.5
+    norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
+    cmap = cmocean.cm.balance
+    
+    # Plot each census
+    for idx, (corr, census) in enumerate(zip(all_correlations, censuses)):
+        im = axes[idx].imshow(corr, cmap=cmap, norm=norm)
+        axes[idx].set_title(f'Census {census}')
+        axes[idx].set_xlabel('Species index')
+        axes[idx].set_ylabel('Species index')
+    
+    plt.colorbar(im, ax=axes, orientation='horizontal', 
+                 fraction=0.046, pad=0.04, label='Correlation')
+    plt.suptitle('Forest Correlation Matrices Across All Censuses', 
+                 fontsize=16, fontweight='bold')
+    plt.tight_layout()
+    
+    if filename:
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+    
+    plt.close()
+    
+    # Plot average and std
+    fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+    
+    im1 = axes[0].imshow(avg_correlation, cmap=cmap, norm=norm)
+    axes[0].set_title('Average Correlation (all censuses)')
+    axes[0].set_xlabel('Species index')
+    axes[0].set_ylabel('Species index')
+    plt.colorbar(im1, ax=axes[0], label='Correlation')
+    
+    # Standard deviation (use different colormap - no diverging needed)
+    im2 = axes[1].imshow(forest_corr_std, cmap='YlOrRd', vmin=0)
+    axes[1].set_title('Correlation Std Dev (across censuses)')
+    axes[1].set_xlabel('Species index')
+    axes[1].set_ylabel('Species index')
+    plt.colorbar(im2, ax=axes[1], label='Std Dev')
+    
+    plt.tight_layout()
+    
+    if filename:
+        base = filename.rsplit('.', 1)[0]
+        plt.savefig(f"{base}_avg_std.png", dpi=300, bbox_inches='tight')
+    
+    plt.close()
+
+def plot_community_data(
+    forest, census, community_id, species_indices, num_species=100,
+    topo_image_path=None, image_extent=None
+):
+    """
+    Plot species locations for a community on top of a background image (e.g., topographic map).
+    """
+    import os
+    import matplotlib.pyplot as plt
+    import matplotlib.image as mpimg
+    from src.utils import load_forest_data
+
+    output_dir = 'community_data/'
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Load the forest data
+    df, names = load_forest_data(forest, census, num_species)
+
+    # Create figure
+    dpi = 100
+    fig, ax = plt.subplots(figsize=(1000/dpi, 500/dpi))
+
+    # ---------------------------------------------------------
+    #  BACKGROUND IMAGE
+    # ---------------------------------------------------------
+    if topo_image_path is not None:
+        img = mpimg.imread(topo_image_path)
+
+        if image_extent is None:
+            # Default: image will fill the axes in pixel coordinates
+            ax.imshow(img, origin='lower', alpha=0.7)
+        else:
+            # Use forest plot coordinate system
+            ax.imshow(img, extent=image_extent, origin='lower', alpha=0.7)
+
+    # ---------------------------------------------------------
+    #  FOREGROUND SPECIES SCATTER PLOTS
+    # ---------------------------------------------------------
+    colors = plt.cm.get_cmap("tab20", len(species_indices))
+
+    for i, idx in enumerate(species_indices):
+        species_name = names[idx]
+        species_data = df[df['name'] == species_name]
+
+        if not species_data.empty:
+            ax.scatter(
+                species_data['x'], species_data['y'],
+                label=species_name,
+                color=colors(i),
+                s=10
+            )
+
+    # Labels, legend, etc.
+    ax.set_title(f"Community {community_id} Species Plot")
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.legend(title="Species", bbox_to_anchor=(1.05, 1), loc='upper left')
+
+    # Save
+    plot_file = os.path.join(output_dir, f"community_{community_id}_plot.png")
+    plt.tight_layout()
+    plt.savefig(plot_file)
+    plt.close()
+
+    print(f"Plot for Community {community_id} saved to {plot_file}")
+
+

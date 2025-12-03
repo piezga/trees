@@ -47,21 +47,20 @@ def compute_spectra(resolution, calculate):
     quantities at a given resolution
     """
     if calculate:
-
         n_bins_x = int(forest_grid_width / resolution)
         n_bins_y = int(forest_grid_height / resolution)
         n_bins_x_senm = int(senm_grid_width / resolution)
         n_bins_y_senm = int(senm_grid_height / resolution)
         
         bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
-
         (senm_mean, 
          senm_std, senm_abundance) = compute_mean_senm_spectrum(num_species, 
                                                                 n_bins_x_senm, 
                                                                 n_bins_y_senm, 
                                                                 standardize=True)
-
         forest_spectra = []
+        forest_abundances = []  # NEW: Store all abundances
+        
         for census in censuses:
             path = path_template.format(forest=forest)
             os.makedirs(f"{path}plots", exist_ok=True)
@@ -73,8 +72,43 @@ def compute_spectra(resolution, calculate):
                                                          n_bins_y, 
                                                          standardize = True)
             forest_spectra.append(spectrum)
+            forest_abundances.append(forest_abundance)  # NEW: Store this census
+        
+        # Return all abundances instead of just the last one
+        return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundances
 
-    return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundance
+def compute_average_correlation(forest_abundances):
+    """
+    Compute average correlation matrix across all census abundances.
+    
+    Parameters
+    ----------
+    forest_abundances : list of arrays
+        List of abundance matrices, one per census
+        Each has shape (num_species, num_bins)
+    
+    Returns
+    -------
+    avg_correlation : array
+        Average correlation matrix across all censuses
+    correlation_std : array
+        Standard deviation of correlations across censuses
+    all_correlations : list of arrays
+        Individual correlation matrices for each census
+    """
+    all_correlations = []
+    
+    for abundance in forest_abundances:
+        corr = np.corrcoef(abundance)
+        all_correlations.append(corr)
+    
+    # Stack and compute mean and std
+    corr_stack = np.stack(all_correlations, axis=0)
+    avg_correlation = np.mean(corr_stack, axis=0)
+    correlation_std = np.std(corr_stack, axis=0)
+    
+    return avg_correlation, correlation_std, all_correlations
+
 
 def L_detect_communities(corr_matrix, tau=1e-3, Th=1e-4, return_linkage=False):
     """Detect communities from filtered correlation matrix using Laplacian diffusion clustering."""

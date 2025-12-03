@@ -60,8 +60,8 @@ def load_forest_data(forest, census, num_species):
         f"{path_template.format(forest=forest)}{census_template.format(forest=forest, census=census)}"
     )
 
-    # Load names file (handling UTF-8 BOM)
-    names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=census)}"
+    # Load names file for census 4 (handling UTF-8 BOM)
+    names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=4)}"
 
     try:
         # Safely read lines and strip whitespace
@@ -70,8 +70,10 @@ def load_forest_data(forest, census, num_species):
     except Exception as e:
         raise RuntimeError(f"Error reading names file '{names_file}': {e}")
 
-    # Filter DataFrame to only top species
+    # Filter DataFrame to only top species and sort
     df = df[df['name'].isin(names)]
+    df = df.sort_values(by='name')
+    #print(df['name'].drop_duplicates().reset_index(drop=True))
     return df, names
 
 def load_senm_data(Nx, Ny, nu, kernel, realization):
@@ -254,4 +256,40 @@ def print_community_membership_comparison(
     print(f"  {method2_name}: {len(np.unique(CM_method2))} communities")
     print(f"{'='*80}\n")
 
-
+def find_consensus_communities(community_dict, threshold=0.7):
+    """
+    Find species pairs that are consistently grouped together across methods.
+    
+    Parameters
+    ----------
+    community_dict : dict
+        Dictionary mapping method names to community assignments
+    threshold : float
+        Fraction of methods that must agree for a pair to be "consensus"
+        
+    Returns
+    -------
+    consensus_matrix : array
+        Binary matrix where 1 means species are consistently co-clustered
+    """
+    n_species = len(list(community_dict.values())[0])
+    n_methods = len(community_dict)
+    
+    # Create co-clustering matrix
+    co_cluster = np.zeros((n_species, n_species))
+    
+    for method, CM in community_dict.items():
+        # For each pair of species, check if they're in same community
+        for i in range(n_species):
+            for j in range(i, n_species):
+                if CM[i] == CM[j]:
+                    co_cluster[i, j] += 1
+                    co_cluster[j, i] += 1
+    
+    # Normalize by number of methods
+    co_cluster /= n_methods
+    
+    # Threshold to get consensus
+    consensus = (co_cluster >= threshold).astype(int)
+    
+    return consensus, co_cluster
