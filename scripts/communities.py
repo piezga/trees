@@ -6,7 +6,7 @@ import os
 from src.config import load_config
 from src.compute import (
         compute_spectra, MarchenkoPastur, detect_communities_corr,
-        compute_average_correlation
+        compute_average_correlation, L_detect_communities
         )
 from src.plotting import (
     plot_community_dendrogram,
@@ -17,19 +17,21 @@ from src.utils import load_forest_data
 
 # Load config 
 config = load_config()
-num_species = 200  # Set num_species to 200 as requested
+num_species = 100
 censuses = config['forests']['censuses']
 path_template = config['forests']['templates']['path_template']
 census_template = config['forests']['templates']['census_template']
 names_template = config['forests']['templates']['names_template']
 
 # Parameters
-resolution = 5
+resolution = 7
 print(f'Testing for resolution {resolution} m ')
-n_comms_forest = 10
+n_communities = 10
 method = 'ward'
 names_file = f'{path_template.format(forest = "barro")}{names_template.format(forest="barro", census=4)}'
 print(names_file)
+
+laplacian = True
 
 # Calculating some basic quantities
 (senm_mean, senm_std, forest_spectra, 
@@ -45,16 +47,33 @@ print(names_file)
 filtered_forest_corr = MarchenkoPastur(forest_corr, num_species, 
                                        bins[2]*bins[3], remove_largest=False,
                                        remove_small=False)
+if not laplacian:
 
-# Community detection
-(forest_reordered, forest_fcluster, forest_idx,
- forest_linkage_matrix, 
- forest_cut_height) = detect_communities_corr(filtered_forest_corr, n_comms_forest,
-                                              return_linkage = True,
-                                              method = method)
+#==================================
+#=== Simple community detection ===
+#==================================
+    print('Performing simple community detection')
+
+    (forest_reordered, forest_fcluster, forest_idx,
+     forest_linkage_matrix, 
+     forest_cut_height) = detect_communities_corr(filtered_forest_corr, n_communities,
+                                                  return_linkage = True,
+                                                  method = method)
+else:
+#=====================================
+#=== Laplacian community detection ===
+#=====================================
+    print('Performing Laplacian community detection')
+#Parameters
+    (forest_reordered, forest_fcluster, forest_idx,
+     forest_linkage_matrix, 
+     forest_cut_height)  = L_detect_communities(filtered_forest_corr,
+                                                               n_communities,
+                                                               return_linkage=True)
+
 
 print(f"\n--- FOREST Community Detection Results ---")
-print(f"• Communities detected in the FOREST matrix: {n_comms_forest}")
+print(f"• Communities detected in the FOREST matrix: {n_communities}")
 print(f"• Reordered FOREST matrix shape: {forest_reordered.shape}")
 print(f"• Number of clusters in FOREST: {len(set(forest_fcluster))} unique clusters detected.")
 print(f"• Community detection linkage matrix (FOREST) shape: {forest_linkage_matrix.shape}")
@@ -102,9 +121,9 @@ for community_id, species_list in communities.items():
 for community_id, species_list in communities.items():
     # Get the indices of the species for the current community
     species_indices = [species_names.index(species) for species in species_list]
-    
+    filename = f'community_data/res_{resolution}_community_{community_id}'
     # Plot and save the community data
-    plot_community_data('barro', 4, community_id, species_indices)
+    plot_community_data('barro', 4, community_id, species_indices, filename=filename)
 
 # Plot community matrix
 outfile = os.path.join(output_dir, f"filtered_corr_reordered_{method}.png")
@@ -115,5 +134,4 @@ plot_corr_with_communities(
     outfile=outfile,
     show=True
 )
-
 

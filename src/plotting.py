@@ -798,7 +798,8 @@ def plot_correlation_stability(all_correlations, avg_correlation, forest_corr_st
 
 def plot_community_data(
     forest, census, community_id, species_indices, num_species=100,
-    topo_image_path=None, image_extent=None
+    topo_image_path=None, image_extent=None,
+    filename=None
 ):
     """
     Plot species locations for a community on top of a background image (e.g., topographic map).
@@ -856,12 +857,16 @@ def plot_community_data(
     ax.legend(title="Species", bbox_to_anchor=(1.05, 1), loc='upper left')
 
     # Save
-    plot_file = os.path.join(output_dir, f"community_{community_id}_plot.png")
     plt.tight_layout()
-    plt.savefig(plot_file)
+
+    if filename == None:
+        plt.show()
+    else :
+        plt.savefig(filename)
+
     plt.close()
 
-    print(f"Plot for Community {community_id} saved to {plot_file}")
+    print(f"Plot for Community {community_id} saved to {filename}")
 
 def plot_corr_with_communities(
     corr_matrix,
