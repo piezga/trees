@@ -41,7 +41,7 @@ censuses = config['forests']['censuses']
 
 
 # === Compute spectra ===
-def compute_spectra(resolution, calculate):
+def compute_spectra(resolution, num_species,calculate=True):
     """
     All purpose computing function that returns the basic relevant
     quantities at a given resolution
@@ -413,7 +413,7 @@ def square_diff_above_MP(spectrum_A, spectrum_B, lambda_max_A, lambda_max_B):
     return squared_diff, diff_communities
 
 
-def MarchenkoPastur(C,N,T,remove_largest=True,remove_small=False):
+def MarchenkoPastur(C,N,T,remove_largest=False,remove_small=False):
     """Uses Marchenko-Pastur law to remove noise.
         remove_largest (bool), optional
             If ``False``, all the eigenvectors associated to the
@@ -504,4 +504,34 @@ def compute_community_overlap(CM_method1, CM_method2):
     
     return ari, confusion
 
+def compute_filtering_variation(resolution, num_species, calculate=True):
+    """
+    Computes how much each pair of species varies its correlation when
+    applying the spectral filter.
 
+    Input:
+    --------
+    -Resolution
+    -Number of species
+
+    Output:
+    -Matrix of correlation variations (filtered - original)
+    """
+
+    # Get abundances and bins
+    _, _, _, bins, _, abundances = compute_spectra(resolution, num_species, calculate)
+    T = bins[2]*bins[3]
+
+    # Compute correlation matrix
+    unfil_corr_matrix, _, _ = compute_average_correlation(abundances)
+
+    # Filter it 
+    fil_corr_matrix = MarchenkoPastur(unfil_corr_matrix, num_species, T)
+   
+    # Subtract
+    difference = fil_corr_matrix - unfil_corr_matrix
+    
+    # Set diagonal to 0 so it doesn't bother us
+    np.fill_diagonal(difference,0)
+
+    return difference

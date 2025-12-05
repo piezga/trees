@@ -82,3 +82,14 @@ C'è il problema che le 100 specie di Barro non sono sempre nello stesso ordine.
 Una possibile soluzione è quella di scegliere le 100 più abbondanti una sola volta
 (tipo censimento numero 4 che è a metà) e poi filtrare sempre quelle mettendole in ordine
 alfabetico.
+
+#  5/12/25
+
+Ora si tratta di trovare quelle specie che cambiano di molto la loro correlazione filtrando.
+Quindi prendo la matrice non filtrata e le sottraggo quella filtrata, poi printo le 
+coppie che variano più di tutte. 
+
+Lo faccio con due funzioni. Una che prende in input numero di specie e risoluzione e mi dà
+come output la matrice delle variazioni.
+L'altra funzione prende la matrice delle variazioni e mi dà un ranking delle coppie da quelle
+che cambiano di più a quelle che cambiano di meno.
