@@ -93,3 +93,7 @@ Lo faccio con due funzioni. Una che prende in input numero di specie e risoluzio
 come output la matrice delle variazioni.
 L'altra funzione prende la matrice delle variazioni e mi dà un ranking delle coppie da quelle
 che cambiano di più a quelle che cambiano di meno.
+
+Ad ora ho fatto uno script che calcola (o carica) la variazione e salva i plot in 
+variations. I risultati sembrano stabili: ci sono fluttuazioni, ma i quadratini rossi 
+rimangono rossi e viceversa.

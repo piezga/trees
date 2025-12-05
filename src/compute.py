@@ -39,9 +39,7 @@ censuses = config['forests']['censuses']
 
 
 
-
-# === Compute spectra ===
-def compute_spectra(resolution, num_species,calculate=True):
+def compute_spectra(resolution, num_species, calculate=True):
     """
     All purpose computing function that returns the basic relevant
     quantities at a given resolution
@@ -53,13 +51,15 @@ def compute_spectra(resolution, num_species,calculate=True):
         n_bins_y_senm = int(senm_grid_height / resolution)
         
         bins = [n_bins_x_senm, n_bins_y_senm, n_bins_x, n_bins_y]
+        
         (senm_mean, 
          senm_std, senm_abundance) = compute_mean_senm_spectrum(num_species, 
                                                                 n_bins_x_senm, 
                                                                 n_bins_y_senm, 
                                                                 standardize=True)
+        
         forest_spectra = []
-        forest_abundances = []  # NEW: Store all abundances
+        forest_abundances = []
         
         for census in censuses:
             path = path_template.format(forest=forest)
@@ -70,11 +70,29 @@ def compute_spectra(resolution, num_species,calculate=True):
                                                          names, 
                                                          n_bins_x, 
                                                          n_bins_y, 
-                                                         standardize = True)
+                                                         standardize=True)
             forest_spectra.append(spectrum)
-            forest_abundances.append(forest_abundance)  # NEW: Store this census
+            forest_abundances.append(forest_abundance)
         
-        # Return all abundances instead of just the last one
+        # Save computed values
+        np.save(f'quantities/{forest}_senm_spectrum_{num_species}_{resolution}.npy', senm_mean)
+        np.save(f'quantities/{forest}_senm_std_{num_species}_{resolution}.npy', senm_std)
+        np.save(f'quantities/{forest}_senm_abundance_{num_species}_{resolution}.npy', senm_abundance)
+        np.save(f'quantities/{forest}_forest_spectra_{num_species}_{resolution}.npy', forest_spectra)
+        np.save(f'quantities/{forest}_forest_abundances_{num_species}_{resolution}.npy', forest_abundances)
+        np.save(f'quantities/{forest}_bins_{num_species}_{resolution}.npy', bins)
+        
+        return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundances
+    
+    else:
+        # Load cached values
+        senm_mean = np.load(f'quantities/{forest}_senm_spectrum_{num_species}_{resolution}.npy')
+        senm_std = np.load(f'quantities/{forest}_senm_std_{num_species}_{resolution}.npy')
+        senm_abundance = np.load(f'quantities/{forest}_senm_abundance_{num_species}_{resolution}.npy')
+        forest_spectra = np.load(f'quantities/{forest}_forest_spectra_{num_species}_{resolution}.npy')
+        forest_abundances = np.load(f'quantities/{forest}_forest_abundances_{num_species}_{resolution}.npy')
+        bins = np.load(f'quantities/{forest}_bins_{num_species}_{resolution}.npy')
+        
         return senm_mean, senm_std, forest_spectra, bins, senm_abundance, forest_abundances
 
 def compute_average_correlation(forest_abundances):
