@@ -31,25 +31,34 @@ bottom_pairs = [
     (28, 37)
 ]
 
-# Storage for correlation values across resolutions
+# Storage for original correlation values and variations across resolutions
+top_variations = {pair: [] for pair in top_pairs}
+bottom_variations = {pair: [] for pair in bottom_pairs}
 top_correlations = {pair: [] for pair in top_pairs}
 bottom_correlations = {pair: [] for pair in bottom_pairs}
+top_filtered = {pair: [] for pair in top_pairs}
+bottom_filtered = {pair: [] for pair in bottom_pairs}
 
 # Loop through resolutions and collect correlation values
 for resolution in resolutions:
     print(f'Computing variation for resolution {resolution} m')
     
     # Compute filtering variation
-    variation = compute_filtering_variation(resolution, num_species, calculate=False)
+    variation, original, filtered = compute_filtering_variation(resolution, 
+                                                      num_species, calculate=False)
     
     # Extract correlation values for tracked pairs
     for pair in top_pairs:
         i, j = pair
-        top_correlations[pair].append(variation[i, j])
+        top_variations[pair].append(variation[i, j])
+        top_correlations[pair].append(original[i, j])
+        top_filtered[pair].append(filtered[i, j])
     
     for pair in bottom_pairs:
         i, j = pair
-        bottom_correlations[pair].append(variation[i, j])
+        bottom_variations[pair].append(variation[i, j])
+        bottom_correlations[pair].append(original[i, j])
+        bottom_filtered[pair].append(filtered[i, j])
     
     # Create figure for this resolution
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -92,14 +101,14 @@ fig, ax = plt.subplots(figsize=(14, 8))
 # Plot top 5 pairs (positive correlation changes)
 for pair in top_pairs:
     label = f"Species ({pair[0]}, {pair[1]})"
-    ax.plot(resolutions, top_correlations[pair], 
+    ax.plot(resolutions, top_variations[pair], 
             marker='o', linewidth=2, markersize=4, 
             label=label, linestyle='-', alpha=0.8)
 
 # Plot bottom 5 pairs (negative correlation changes)
 for pair in bottom_pairs:
     label = f"Species ({pair[0]}, {pair[1]})"
-    ax.plot(resolutions, bottom_correlations[pair], 
+    ax.plot(resolutions, bottom_variations[pair], 
             marker='s', linewidth=2, markersize=4,
             label=label, linestyle='--', alpha=0.8)
 
@@ -118,29 +127,89 @@ ax.legend(loc='best', fontsize=10, ncol=2, framealpha=0.9)
 plt.tight_layout()
 
 # Save tracking plot
-tracking_filename = 'variations/correlation_tracking_across_resolutions.png'
+tracking_filename = 'variations/variation_tracking_across_resolutions.png'
+plt.savefig(tracking_filename, dpi=300, bbox_inches='tight')
+print(f"\n✓ Variation tracking plot saved: {tracking_filename}")
+
+plt.show()
+
+#============================
+#=== Plot original values ===
+#============================
+
+fig, ax = plt.subplots(figsize=(14, 8))
+
+for pair in top_pairs:
+    label = f"Species ({pair[0]}, {pair[1]})"
+    ax.plot(resolutions, top_correlations[pair], 
+            marker='o', linewidth=2, markersize=4, 
+            label=label, linestyle='-', alpha=0.8)
+
+# Plot bottom 5 pairs (negative correlation changes)
+for pair in bottom_pairs:
+    label = f"Species ({pair[0]}, {pair[1]})"
+    ax.plot(resolutions, bottom_correlations[pair], 
+            marker='s', linewidth=2, markersize=4,
+            label=label, linestyle='--', alpha=0.8)
+
+# Add horizontal line at zero
+ax.axhline(y=0, color='black', linestyle=':', linewidth=1, alpha=0.5, label='No change')
+
+# Labels and styling
+ax.set_xlabel('Resolution (m)', fontsize=14, fontweight='bold')
+ax.set_ylabel('Unfiltered correlation', fontsize=14, fontweight='bold')
+ax.set_title('Original Correlations \nTop 5 & Bottom 5 Species Pairs from Resolution 10m', 
+             fontsize=16, fontweight='bold')
+ax.grid(True, alpha=0.3)
+ax.legend(loc='best', fontsize=10, ncol=2, framealpha=0.9)
+
+# Tight layout
+plt.tight_layout()
+
+# Save tracking plot
+tracking_filename = 'variations/original_correlation_across_resolutions.png'
 plt.savefig(tracking_filename, dpi=300, bbox_inches='tight')
 print(f"\n✓ Correlation tracking plot saved: {tracking_filename}")
 
 plt.show()
 
-"""
-# ========================================
-# Save tracking data to CSV
-# ========================================
+#============================
+#=== Plot filtered values ===
+#============================
 
-import pandas as pd
-
-tracking_data = {'Resolution': resolutions}
+fig, ax = plt.subplots(figsize=(14, 8))
 
 for pair in top_pairs:
-    tracking_data[f'Top_({pair[0]},{pair[1]})'] = top_correlations[pair]
+    label = f"Species ({pair[0]}, {pair[1]})"
+    ax.plot(resolutions, top_filtered[pair], 
+            marker='o', linewidth=2, markersize=4, 
+            label=label, linestyle='-', alpha=0.8)
 
+# Plot bottom 5 pairs (negative correlation changes)
 for pair in bottom_pairs:
-    tracking_data[f'Bottom_({pair[0]},{pair[1]})'] = bottom_correlations[pair]
+    label = f"Species ({pair[0]}, {pair[1]})"
+    ax.plot(resolutions, bottom_filtered[pair], 
+            marker='s', linewidth=2, markersize=4,
+            label=label, linestyle='--', alpha=0.8)
 
-tracking_df = pd.DataFrame(tracking_data)
-tracking_df.to_csv('variations/correlation_tracking_data.csv', index=False)
-print(f"✓ Tracking data saved: variations/correlation_tracking_data.csv\n")
-"""
+# Add horizontal line at zero
+ax.axhline(y=0, color='black', linestyle=':', linewidth=1, alpha=0.5, label='No change')
+
+# Labels and styling
+ax.set_xlabel('Resolution (m)', fontsize=14, fontweight='bold')
+ax.set_ylabel('Filtered correlation', fontsize=14, fontweight='bold')
+ax.set_title('Filtered Correlations \nTop 5 & Bottom 5 Species Pairs from Resolution 10m', 
+             fontsize=16, fontweight='bold')
+ax.grid(True, alpha=0.3)
+ax.legend(loc='best', fontsize=10, ncol=2, framealpha=0.9)
+
+# Tight layout
+plt.tight_layout()
+
+# Save filtered plot
+filtered_filename = 'variations/filtered_correlation_across_resolutions.png'
+plt.savefig(filtered_filename, dpi=300, bbox_inches='tight')
+print(f"\n✓ Filtered correlation tracking plot saved: {filtered_filename}")
+
+plt.show()
 

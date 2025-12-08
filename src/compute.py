@@ -552,4 +552,4 @@ def compute_filtering_variation(resolution, num_species, calculate=True):
     # Set diagonal to 0 so it doesn't bother us
     np.fill_diagonal(difference,0)
 
-    return difference
+    return difference, unfil_corr_matrix, fil_corr_matrix

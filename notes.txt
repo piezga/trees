@@ -97,3 +97,16 @@ che cambiano di più a quelle che cambiano di meno.
 Ad ora ho fatto uno script che calcola (o carica) la variazione e salva i plot in 
 variations. I risultati sembrano stabili: ci sono fluttuazioni, ma i quadratini rossi 
 rimangono rossi e viceversa.
+
+# 8/12/25
+
+Ho fatto i plot prendendo le 10 specie che variano di più (+5 e -5) a 10m.
+Le coppie sono tutte specie diffusa-specie meno diffusa (circa un ordine di grandezza).
+Nella matrice originale c'è un andamento "a imbuto", cioè tutte le correlazioni tendono
+a diminuire in valore assoluto andando verso lo zero. 
+Il filtro sembra mediamente correggere questo andamento, spostando le correlazioni dallo
+zero (in positivo o in negativo).
+In sintesi, pare che il filtro corregga effetti dovuti a una differente abbondanza 
+delle piante, cosa che potrebbe avere senso, perché rispetto alla matrice originaria
+qui sto usando un modello nullo.
+
