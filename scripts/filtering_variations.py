@@ -14,7 +14,7 @@ resolutions = np.arange(5, 33, 1)
 # Create output directory
 os.makedirs("variations", exist_ok=True)
 
-# Hardcoded pairs from resolution 10
+# Hardcoded pairs from resolution 10 + four random pairs
 top_pairs = [
     (13, 56),
     (22, 87),
@@ -31,6 +31,16 @@ bottom_pairs = [
     (28, 37)
 ]
 
+rng = np.random.default_rng()
+random_pairs = [
+        (rng.integers(1,99),rng.integers(1,99)),
+        (rng.integers(1,99),rng.integers(1,99)),
+        (rng.integers(1,20),rng.integers(1,20)),
+        (rng.integers(70,99),rng.integers(70,99))
+        ]
+
+print(f'Extracted random pairs: {random_pairs}')
+
 # Storage for original correlation values and variations across resolutions
 top_variations = {pair: [] for pair in top_pairs}
 bottom_variations = {pair: [] for pair in bottom_pairs}
@@ -39,6 +49,10 @@ bottom_correlations = {pair: [] for pair in bottom_pairs}
 top_filtered = {pair: [] for pair in top_pairs}
 bottom_filtered = {pair: [] for pair in bottom_pairs}
 
+
+random_variations = {pair: [] for pair in random_pairs}
+random_correlations = {pair: [] for pair in random_pairs}
+random_filtered = {pair: [] for pair in random_pairs}
 # Loop through resolutions and collect correlation values
 for resolution in resolutions:
     print(f'Computing variation for resolution {resolution} m')
@@ -59,6 +73,12 @@ for resolution in resolutions:
         bottom_variations[pair].append(variation[i, j])
         bottom_correlations[pair].append(original[i, j])
         bottom_filtered[pair].append(filtered[i, j])
+
+    for pair in random_pairs:
+        i, j = pair
+        random_variations[pair].append(variation[i, j])
+        random_correlations[pair].append(original[i, j])
+        random_filtered[pair].append(filtered[i, j])
     
     # Create figure for this resolution
     fig, ax = plt.subplots(figsize=(10, 8))
@@ -112,8 +132,15 @@ for pair in bottom_pairs:
             marker='s', linewidth=2, markersize=4,
             label=label, linestyle='--', alpha=0.8)
 
+for pair in random_pairs:
+    label = f"Species ({pair[0]}, {pair[1]})"
+    ax.plot(resolutions, random_variations[pair], 
+            marker='s', linewidth=2, markersize=4,
+            label=label, linestyle=':', alpha=0.8)
+
+
 # Add horizontal line at zero
-ax.axhline(y=0, color='black', linestyle=':', linewidth=1, alpha=0.5, label='No change')
+ax.axhline(y=0, color='black', linestyle='-.', linewidth=1, alpha=0.5, label='No change')
 
 # Labels and styling
 ax.set_xlabel('Resolution (m)', fontsize=14, fontweight='bold')
@@ -152,8 +179,15 @@ for pair in bottom_pairs:
             marker='s', linewidth=2, markersize=4,
             label=label, linestyle='--', alpha=0.8)
 
+for pair in random_pairs:
+    label = f"Species ({pair[0]}, {pair[1]})"
+    ax.plot(resolutions, random_correlations[pair], 
+            marker='s', linewidth=2, markersize=4,
+            label=label, linestyle=':', alpha=0.8)
+
+
 # Add horizontal line at zero
-ax.axhline(y=0, color='black', linestyle=':', linewidth=1, alpha=0.5, label='No change')
+ax.axhline(y=0, color='black', linestyle='-.', linewidth=1, alpha=0.5, label='No change')
 
 # Labels and styling
 ax.set_xlabel('Resolution (m)', fontsize=14, fontweight='bold')
@@ -192,8 +226,15 @@ for pair in bottom_pairs:
             marker='s', linewidth=2, markersize=4,
             label=label, linestyle='--', alpha=0.8)
 
+for pair in random_pairs:
+    label = f"Species ({pair[0]}, {pair[1]})"
+    ax.plot(resolutions, random_filtered[pair], 
+            marker='s', linewidth=2, markersize=4,
+            label=label, linestyle=':', alpha=0.8)
+
+
 # Add horizontal line at zero
-ax.axhline(y=0, color='black', linestyle=':', linewidth=1, alpha=0.5, label='No change')
+ax.axhline(y=0, color='black', linestyle='-.', linewidth=1, alpha=0.5, label='No change')
 
 # Labels and styling
 ax.set_xlabel('Resolution (m)', fontsize=14, fontweight='bold')
