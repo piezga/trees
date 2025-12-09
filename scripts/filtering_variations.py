@@ -273,6 +273,9 @@ plot_correlation_tracking(
 #===================
 for pair in pairs:
     print(pair)
-    raster_plot(*pair)  # unpack tuple to separate arguments
+    filename = f'variations/raster_plot_pair{pair}.png'
+    raster_plot(*pair, filename=filename)  # unpack tuple to separate arguments
+    print(f'  → Saved raster: {filename}')
+    plt.close()
 
 

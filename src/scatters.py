@@ -2,6 +2,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from src.config import load_config
+import os
+import glob
+
+# Delete previous raster plots
+for f in glob.glob("variations/raster_plot_pair*.png"):
+    os.remove(f)
+print('Removed previous raster plots')
 
 def plot_species_spatial_distribution(
     species_indices,

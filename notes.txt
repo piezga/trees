@@ -111,9 +111,11 @@ In sintesi, pare che il filtro corregga effetti dovuti a una differente abbondan
 delle piante, cosa che potrebbe avere senso, perché rispetto alla matrice originaria
 qui sto usando un modello nullo.
 
-Ora voglio prendere coppie random e vedere che effetto ho lì.
+Ora voglio prendere coppie random e vedere che effetto ho lì. (fatto e nulla di che)
 
 # 9/12/25
 
 Devo controllare con uno script semplice se è vero che un'abbondanza diversa 
 introduce un bias nella correlazione.
+
+A scale piccole non mi rendo conto dei cluster(??)
