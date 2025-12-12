@@ -273,9 +273,13 @@ plot_correlation_tracking(
 #===================
 for pair in pairs:
     print(pair)
+<<<<<<< HEAD
     filename = f'variations/raster_plot_pair{pair}.png'
     raster_plot(*pair, filename=filename)  # unpack tuple to separate arguments
     print(f'  → Saved raster: {filename}')
+=======
+    raster_plot(*pair, background='level.png')  # unpack tuple to separate arguments
+>>>>>>> ddcfee2 (added level plot)
     plt.close()
 
 
