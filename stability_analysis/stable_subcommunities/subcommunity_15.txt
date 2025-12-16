@@ -1,0 +1,9 @@
+Stable Subcommunity 15
+================================================================================
+Size: 3 species
+Stability: Present in ≥4/5 resolutions
+
+Species:
+    8. gar2in
+   26. virose
+   39. simaam

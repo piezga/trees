@@ -1,0 +1,10 @@
+Stable Subcommunity 12
+================================================================================
+Size: 4 species
+Stability: Present in ≥4/5 resolutions
+
+Species:
+    5. mourmy
+   12. protte
+   85. gar2ma
+   88. sipapa

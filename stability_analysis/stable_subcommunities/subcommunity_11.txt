@@ -1,0 +1,10 @@
+Stable Subcommunity 11
+================================================================================
+Size: 4 species
+Stability: Present in ≥4/5 resolutions
+
+Species:
+    4. alsebl
+   82. chr1ec
+   87. cecrin
+   90. guetfo

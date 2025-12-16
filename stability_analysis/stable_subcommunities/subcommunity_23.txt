@@ -1,0 +1,9 @@
+Stable Subcommunity 23
+================================================================================
+Size: 3 species
+Stability: Present in ≥4/5 resolutions
+
+Species:
+   16. beilpe
+   52. stylst
+   80. pentma

@@ -1,0 +1,11 @@
+Stable Subcommunity 9
+================================================================================
+Size: 5 species
+Stability: Present in ≥4/5 resolutions
+
+Species:
+   55. micoar
+   57. talipr
+   59. ingaqu
+   60. unonpi
+   67. eugene

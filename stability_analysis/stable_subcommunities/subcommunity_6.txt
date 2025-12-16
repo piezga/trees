@@ -1,0 +1,9 @@
+Stable Subcommunity 6
+================================================================================
+Size: 3 species
+Stability: Present in ≥5/5 resolutions
+
+Species:
+   82. chr1ec
+   87. cecrin
+   90. guetfo

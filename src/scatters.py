@@ -105,7 +105,7 @@ def plot_species_spatial_distribution(
     if colors is None:
 
         colors = ['blue', 'red', 'green', 'orange', 
-                      'purple', 'cyan', 'magenta', 'yellow', 'black', 'brown']
+                      'purple', 'cyan', 'magenta', 'yellow', 'black', 'brown', 'fuchsia']
         colors = colors[:len(species_indices)]
     
     # Plot each species

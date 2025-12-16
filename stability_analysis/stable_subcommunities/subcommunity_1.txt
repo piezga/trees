@@ -1,0 +1,17 @@
+Stable Subcommunity 1
+================================================================================
+Size: 11 species
+Stability: Present in ≥5/5 resolutions
+
+Species:
+    7. hirttr
+    9. tet2pa
+   15. tachve
+   24. oenoma
+   35. guatdu
+   41. xyl1ma
+   51. protco
+   61. chr2ar
+   68. ingama
+   97. licapl
+   99. micone
