@@ -134,10 +134,10 @@ bottom_pairs = [
 
 rng = np.random.default_rng()
 random_pairs = [
-    (rng.integers(1, 99), rng.integers(1, 99)),
-    (rng.integers(1, 99), rng.integers(1, 99)),
-    (rng.integers(1, 20), rng.integers(1, 20)),
-    (rng.integers(70, 99), rng.integers(70, 99))
+    (int(rng.integers(1, 99)), int(rng.integers(1, 99))),
+    (int(rng.integers(1, 99)), int(rng.integers(1, 99))),
+    (int(rng.integers(1, 20)), int(rng.integers(1, 20))),
+    (int(rng.integers(70, 99)), int(rng.integers(70, 99)))
 ]
 
 pairs = top_pairs + bottom_pairs + random_pairs
@@ -273,13 +273,9 @@ plot_correlation_tracking(
 #===================
 for pair in pairs:
     print(pair)
-<<<<<<< HEAD
     filename = f'variations/raster_plot_pair{pair}.png'
-    raster_plot(*pair, filename=filename)  # unpack tuple to separate arguments
+    raster_plot(*pair, background='level.png',
+                filename = filename, show=True)  # unpack tuple 
     print(f'  → Saved raster: {filename}')
-=======
-    raster_plot(*pair, background='level.png')  # unpack tuple to separate arguments
->>>>>>> ddcfee2 (added level plot)
-    plt.close()
 
 

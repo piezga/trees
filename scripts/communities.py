@@ -24,7 +24,7 @@ census_template = config['forests']['templates']['census_template']
 names_template = config['forests']['templates']['names_template']
 
 # Parameters
-resolution = 7
+resolution = 8
 print(f'Testing for resolution {resolution} m ')
 n_communities = 10
 method = 'ward'
@@ -32,11 +32,12 @@ names_file = f'{path_template.format(forest = "barro")}{names_template.format(fo
 print(names_file)
 
 laplacian = True
-
+tau = 1e-3
 # Calculating some basic quantities
 (senm_mean, senm_std, forest_spectra, 
- bins, senm_abundance, forest_abundances) = compute_spectra(resolution, 
-                                                           calculate=True)
+ bins, senm_abundance, forest_abundances) = compute_spectra(resolution,
+                                                            num_species=num_species,
+                                                            calculate=True)
 
 # === Calculating correlation matrices and filtering===
 
@@ -69,6 +70,7 @@ else:
      forest_linkage_matrix, 
      forest_cut_height)  = L_detect_communities(filtered_forest_corr,
                                                                n_communities,
+                                                               tau = tau,
                                                                return_linkage=True)
 
 
@@ -90,7 +92,7 @@ with open(names_file, 'r') as f:
     species_names = [line.strip() for line in f.readlines()]
 
 # Ensure the output directory exists
-output_dir = 'community_comparison'
+output_dir = 'community_data'
 os.makedirs(output_dir, exist_ok=True)
 
 # Assuming 'forest_fcluster' contains the community assignments for each species
