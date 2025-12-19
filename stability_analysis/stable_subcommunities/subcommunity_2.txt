@@ -1,10 +1,9 @@
 Stable Subcommunity 2
 ================================================================================
-Size: 4 species
-Stability: Present in ≥5/5 resolutions
+Size: 3 species
+Stability: Present in ≥14/14 resolutions
 
 Species:
    10. cappfr
    77. coccma
    91. ingasa
-   94. nectci

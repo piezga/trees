@@ -1,10 +1,9 @@
 Stable Subcommunity 3
 ================================================================================
-Size: 4 species
-Stability: Present in ≥5/5 resolutions
+Size: 3 species
+Stability: Present in ≥14/14 resolutions
 
 Species:
    13. protpa
    18. rinosy
-   56. taline
    64. hassfl

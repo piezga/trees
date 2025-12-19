@@ -1,9 +1,0 @@
-Stable Subcommunity 14
-================================================================================
-Size: 3 species
-Stability: Present in ≥4/5 resolutions
-
-Species:
-    0. hybapr
-   21. drypst
-   44. calolo

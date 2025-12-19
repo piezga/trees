@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import os
 from collections import defaultdict
 from itertools import combinations
+import shutil
+from pathlib import Path
 
 from src.config import load_config
 from src.compute import (
@@ -26,12 +28,21 @@ census_template = config['forests']['templates']['census_template']
 names_template = config['forests']['templates']['names_template']
 
 # Parameters
-resolutions = [8, 9, 10, 11, 12]
-n_communities = 10
 method = 'ward'
+directory = Path('stability_analysis/')
 laplacian = True
 tau = 1e-3
-stability_threshold = 5  # Appear together in at least n/5 resolutions
+resolutions_10 = [7,8, 9, 10, 11, 12]
+resolutions_9  = [13, 14, 15, 16, 17, 18, 19, 20]
+resolutions = resolutions_10 + resolutions_9
+stability_threshold = len(resolutions)  # Appear together in at least ... resolutions
+
+# Clear directory so I don't keep old results
+if directory.exists():
+    shutil.rmtree(directory)
+
+# Recreate it
+directory.mkdir(parents=True, exist_ok=True)
 
 names_file = f'{path_template.format(forest="barro")}{names_template.format(forest="barro", census=4)}'
 print(f"Loading species names from: {names_file}")
@@ -54,6 +65,16 @@ for resolution in resolutions:
     print(f"Processing resolution: {resolution} m")
     print(f"{'─'*80}")
     
+    if resolution in resolutions_9:
+        n_communities = 9 
+
+    elif resolution in resolutions_10 :
+        n_communities = 10
+        
+    else:
+        raise ValueError(f"ERROR! Wrong resolution: {resolution}")
+
+    print(f'Number of expected communities: {n_communities}') 
     # Compute spectra
     (senm_mean, senm_std, forest_spectra, 
      bins, senm_abundance, forest_abundances) = compute_spectra(
@@ -185,7 +206,6 @@ def find_stable_subcommunities(stable_pairs, species_names, min_size=3):
         graph[j].add(i)
     
     # Find maximal cliques using greedy approach
-    # (For large networks, use networkx for better algorithms)
     def find_cliques_greedy(graph, min_size):
         cliques = []
         visited = set()
@@ -289,7 +309,7 @@ def plot_stability_matrix(stable_pairs, species_names, resolutions, filename=Non
         plt.savefig(filename, dpi=300, bbox_inches='tight')
         print(f"✓ Saved: {filename}")
     
-    plt.show()
+    plt.close()
 
 plot_stability_matrix(
     stable_pairs, species_names, resolutions,
@@ -350,7 +370,7 @@ for idx, subcomm in enumerate(sorted(subcommunities, key=len, reverse=True)[:5],
         markersize=3,
         panel_label=f'Subcommunity {idx}',
         filename=f'stability_analysis/stable_subcommunities/subcommunity_{idx}_spatial.png',
-        show=False
+        show=True
     )
     
     print(f"✓ Plotted spatial distribution for subcommunity {idx}")

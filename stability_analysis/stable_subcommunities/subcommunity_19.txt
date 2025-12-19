@@ -1,9 +1,0 @@
-Stable Subcommunity 19
-================================================================================
-Size: 3 species
-Stability: Present in ≥4/5 resolutions
-
-Species:
-   32. eugega
-   54. eugeco
-   72. herrpu

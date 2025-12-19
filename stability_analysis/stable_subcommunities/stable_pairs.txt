@@ -1,270 +1,129 @@
-Stable Species Pairs (≥5/5 resolutions)
+Stable Species Pairs (≥14/14 resolutions)
 ================================================================================
 
-( 0, 44)  hybapr                         + calolo                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 0, 44)  hybapr                         + calolo                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 5, 85)  mourmy                         + gar2ma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 7,  9)  hirttr                         + tet2pa                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 5, 88)  mourmy                         + sipapa                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 7, 35)  hirttr                         + guatdu                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7,  9)  hirttr                         + tet2pa                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 7, 41)  hirttr                         + xyl1ma                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 15)  hirttr                         + tachve                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 7, 51)  hirttr                         + protco                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 24)  hirttr                         + oenoma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 7, 61)  hirttr                         + chr2ar                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 35)  hirttr                         + guatdu                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 7, 68)  hirttr                         + ingama                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 41)  hirttr                         + xyl1ma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 7, 97)  hirttr                         + licapl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 51)  hirttr                         + protco                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 8, 39)  gar2in                         + simaam                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 61)  hirttr                         + chr2ar                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 9, 35)  tet2pa                         + guatdu                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 68)  hirttr                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 9, 41)  tet2pa                         + xyl1ma                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 97)  hirttr                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 9, 51)  tet2pa                         + protco                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 7, 99)  hirttr                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 9, 61)  tet2pa                         + chr2ar                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 8, 39)  gar2in                         + simaam                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 9, 68)  tet2pa                         + ingama                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 15)  tet2pa                         + tachve                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+( 9, 97)  tet2pa                         + licapl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 24)  tet2pa                         + oenoma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(10, 77)  cappfr                         + coccma                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 35)  tet2pa                         + guatdu                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(10, 91)  cappfr                         + ingasa                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 41)  tet2pa                         + xyl1ma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(13, 18)  protpa                         + rinosy                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 51)  tet2pa                         + protco                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(13, 64)  protpa                         + hassfl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 61)  tet2pa                         + chr2ar                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(18, 64)  rinosy                         + hassfl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 68)  tet2pa                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(24, 99)  oenoma                         + micone                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 97)  tet2pa                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(33, 66)  maquco                         + socrex                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-( 9, 99)  tet2pa                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(35, 41)  guatdu                         + xyl1ma                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(10, 77)  cappfr                         + coccma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(35, 51)  guatdu                         + protco                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(10, 91)  cappfr                         + ingasa                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(35, 61)  guatdu                         + chr2ar                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(10, 94)  cappfr                         + nectci                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(35, 68)  guatdu                         + ingama                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(13, 18)  protpa                         + rinosy                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(35, 97)  guatdu                         + licapl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(13, 56)  protpa                         + taline                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(41, 51)  xyl1ma                         + protco                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(13, 64)  protpa                         + hassfl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(41, 61)  xyl1ma                         + chr2ar                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 24)  tachve                         + oenoma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(41, 68)  xyl1ma                         + ingama                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 35)  tachve                         + guatdu                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(41, 97)  xyl1ma                         + licapl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 41)  tachve                         + xyl1ma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(48, 50)  heisco                         + loncla                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 51)  tachve                         + protco                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(51, 61)  protco                         + chr2ar                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 61)  tachve                         + chr2ar                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(51, 68)  protco                         + ingama                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 68)  tachve                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(51, 97)  protco                         + licapl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 97)  tachve                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(59, 67)  ingaqu                         + eugene                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(15, 99)  tachve                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(61, 68)  chr2ar                         + ingama                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(18, 56)  rinosy                         + taline                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(61, 97)  chr2ar                         + licapl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(18, 64)  rinosy                         + hassfl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(68, 97)  ingama                         + licapl                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(19, 96)  quaras                         + tripcu                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(77, 91)  coccma                         + ingasa                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(24, 35)  oenoma                         + guatdu                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(82, 90)  chr1ec                         + guetfo                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
-(24, 41)  oenoma                         + xyl1ma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(24, 51)  oenoma                         + protco                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(24, 61)  oenoma                         + chr2ar                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(24, 68)  oenoma                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(24, 97)  oenoma                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(24, 99)  oenoma                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(31, 48)  tab2ar                         + heisco                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(31, 50)  tab2ar                         + loncla                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(31, 63)  tab2ar                         + psycma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(33, 66)  maquco                         + socrex                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(35, 41)  guatdu                         + xyl1ma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(35, 51)  guatdu                         + protco                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(35, 61)  guatdu                         + chr2ar                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(35, 68)  guatdu                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(35, 97)  guatdu                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(35, 99)  guatdu                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(36, 37)  ouralu                         + cupasy                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(41, 51)  xyl1ma                         + protco                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(41, 61)  xyl1ma                         + chr2ar                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(41, 68)  xyl1ma                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(41, 97)  xyl1ma                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(41, 99)  xyl1ma                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(48, 50)  heisco                         + loncla                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(48, 63)  heisco                         + psycma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(50, 63)  loncla                         + psycma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(51, 61)  protco                         + chr2ar                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(51, 68)  protco                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(51, 97)  protco                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(51, 99)  protco                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(54, 72)  eugeco                         + herrpu                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(55, 57)  micoar                         + talipr                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(56, 64)  taline                         + hassfl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(59, 67)  ingaqu                         + eugene                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(61, 68)  chr2ar                         + ingama                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(61, 97)  chr2ar                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(61, 99)  chr2ar                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(68, 97)  ingama                         + licapl                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(68, 99)  ingama                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(74, 78)  crotbi                         + aspicr                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(77, 91)  coccma                         + ingasa                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(77, 94)  coccma                         + nectci                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(82, 87)  chr1ec                         + cecrin                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(82, 90)  chr1ec                         + guetfo                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(83, 98)  micoaf                         + ery2ma                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(85, 88)  gar2ma                         + sipapa                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(87, 90)  cecrin                         + guetfo                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(91, 94)  ingasa                         + nectci                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
-
-(97, 99)  licapl                         + micone                          [5/5 resolutions]
-         Resolutions: [8, 9, 10, 11, 12]
+(83, 98)  micoaf                         + ery2ma                          [14/14 resolutions]
+         Resolutions: [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 

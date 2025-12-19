@@ -466,10 +466,12 @@ def plot_community_dendrogram(linkage_matrix,
     """
     # Create the plot
     fig, ax = plt.subplots(figsize=figsize)
+    ax.set_yscale('log') 
 
-    # Add some small values to avoid zeros
+    # Add some small values to avoid zeros and force a lower bound
     linkage_matrix[:, 2] += 1e-6  # Add a small value to avoid log(0)
     threshold += 1e-5
+    ax.set_ylim(bottom=1e-7)
     # Generate dendrogram
     dendrogram_dict = dendrogram(
         linkage_matrix, 
@@ -492,7 +494,6 @@ def plot_community_dendrogram(linkage_matrix,
     ax.set_ylabel('Distance')
     # Display legend
     ax.legend(loc='best')
-    
     # Show the plot if required
     if show:
         plt.show()

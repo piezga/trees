@@ -1,9 +1,0 @@
-Stable Subcommunity 5
-================================================================================
-Size: 3 species
-Stability: Present in ≥5/5 resolutions
-
-Species:
-    5. mourmy
-   85. gar2ma
-   88. sipapa

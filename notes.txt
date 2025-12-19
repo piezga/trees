@@ -119,3 +119,14 @@ Devo controllare con uno script semplice se è vero che un'abbondanza diversa
 introduce un bias nella correlazione.
 
 A scale piccole non mi rendo conto dei cluster(??)
+
+# 17/12
+
+La community analysis delle specie più stabili individua delle cliques di alberi strongly paired
+across una quindicina di risoluzioni non neutrali.
+
+Ci sono una serie di dati del suolo che si possono utilizzare in modo da creare altri filtri,
+simili a quello neutrale, per rimuovere ogni correlazione "mutuata" e avere interazioni vere.
+
+Ci sono altre cose interessanti da guardare:
+  - Possibili interazioni note (mail pablo)
