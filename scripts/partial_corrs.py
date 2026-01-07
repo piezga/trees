@@ -169,12 +169,9 @@ print("\nComputing differences and mediation indices...")
 # Absolute difference
 delta = np.abs(raw_corr - partial_corr)
 
-# Mediation index: (raw - partial) / raw
-# Positive values: correlation reduced after controlling for nutrients (nutrient-mediated)
-# Negative values: correlation increased (nutrients were suppressing the relationship)
-mediation_index = np.zeros_like(raw_corr)
-mask = np.abs(raw_corr) > 1e-10
-mediation_index[mask] = (raw_corr[mask] - partial_corr[mask]) / raw_corr[mask]
+#mediation_index = np.zeros_like(raw_corr)
+# Proportion of variance explained by nutrients
+mediation_index = 1 - (partial_corr**2) / (raw_corr**2 + 1e-10)
 
 # Set diagonal to NaN (not meaningful)
 np.fill_diagonal(delta, np.nan)

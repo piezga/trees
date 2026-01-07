@@ -130,3 +130,8 @@ simili a quello neutrale, per rimuovere ogni correlazione "mutuata" e avere inte
 
 Ci sono altre cose interessanti da guardare:
   - Possibili interazioni note (mail pablo)
+
+# 7/1/26
+
+Esistono già degli alberi filogenetici fatti. È davvero qualcosa che vogliamo trattare?
+
