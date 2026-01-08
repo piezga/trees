@@ -1,0 +1,15 @@
+PARTIAL Correlation Community 7 (12 species)
+============================================================
+
+  9  tet2pa
+ 24  oenoma
+ 25  poutre
+ 41  xyl1ma
+ 45  cordbi
+ 51  protco
+ 76  caseac
+ 80  pentma
+ 82  chr1ec
+ 89  ingas1
+ 92  tropra
+ 99  micone

@@ -135,3 +135,7 @@ Ci sono altre cose interessanti da guardare:
 
 Esistono già degli alberi filogenetici fatti. È davvero qualcosa che vogliamo trattare?
 
+# 8/1 
+
+Nel caso in cui qualcuno lo chiedesse, il filtro di MP viene fatto dopo che ho calcolato
+le correlazioni parziali perché lo faccio su una matrice di correlazione. È denoising.

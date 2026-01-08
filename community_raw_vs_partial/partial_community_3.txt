@@ -1,0 +1,11 @@
+PARTIAL Correlation Community 3 (8 species)
+============================================================
+
+ 19  quaras
+ 30  cordla
+ 46  cassel
+ 53  gustsu
+ 70  ocotwh
+ 86  alibed
+ 91  ingasa
+ 96  tripcu

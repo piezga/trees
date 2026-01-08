@@ -1,0 +1,10 @@
+PARTIAL Correlation Community 10 (7 species)
+============================================================
+
+  0  hybapr
+  1  faraoc
+ 43  paligu
+ 44  calolo
+ 47  ingaum
+ 49  brosal
+ 75  laetth

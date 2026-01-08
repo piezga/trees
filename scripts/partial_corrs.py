@@ -6,7 +6,8 @@ import os
 from sklearn.linear_model import LinearRegression
 
 from src.config import load_config
-from src.compute import compute_spectra, compute_average_correlation, MarchenkoPastur
+from src.compute import (compute_spectra, compute_average_correlation, 
+                         MarchenkoPastur, compute_partial_correlation_matrix)
 
 # ========================================
 # Load Configuration
@@ -20,6 +21,7 @@ names_template = config['forests']['templates']['names_template']
 # Parameters
 resolution = 20
 forest = 'barro'
+debug = True
 
 print(f"\n{'='*80}")
 print(f"RAW vs PARTIAL CORRELATION ANALYSIS")
@@ -99,52 +101,6 @@ else:
 # Compute Partial Correlation Matrix
 # ========================================
 
-def compute_partial_correlation_matrix(species_abundance, nutrient_data):
-    """
-    Compute partial correlation matrix between species, controlling for nutrients.
-    
-    Parameters
-    ----------
-    species_abundance : array, shape (n_species, n_sites)
-        Species abundance data (rows = species, cols = spatial bins)
-    nutrient_data : array, shape (n_nutrients, n_sites)
-        Nutrient abundance data (rows = nutrients, cols = spatial bins)
-        
-    Returns
-    -------
-    partial_corr : array, shape (n_species, n_species)
-        Partial correlation matrix between species, controlling for nutrients
-    """
-    n_species = species_abundance.shape[0]
-    
-    # Transpose so rows are observations (sites) and columns are variables
-    X_species = species_abundance.T  # (n_sites, n_species)
-    X_nutrients = nutrient_data.T    # (n_sites, n_nutrients)
-    
-    # Store residuals after regressing out nutrients
-    residuals = np.zeros_like(X_species)
-    
-    print("\nComputing partial correlations...")
-    print(f"  Regressing out {X_nutrients.shape[1]} nutrients from {n_species} species...")
-    
-    # For each species, regress out the effect of all nutrients
-    for i in range(n_species):
-        if (i + 1) % 20 == 0:
-            print(f"    Processed {i+1}/{n_species} species...")
-        
-        # Fit: species_i = β₀ + β₁*nutrient₁ + ... + βₖ*nutrientₖ + ε
-        reg = LinearRegression()
-        reg.fit(X_nutrients, X_species[:, i])
-        
-        # Residuals = what's left after removing nutrient effects
-        residuals[:, i] = X_species[:, i] - reg.predict(X_nutrients)
-    
-    # Compute correlation matrix of residuals
-    partial_corr = np.corrcoef(residuals.T)
-    print(f"  ✓ Partial correlation matrix computed")
-    
-    return partial_corr
-
 
 print("\nComputing raw correlation matrix...")
 unfiltered_raw_corr = np.corrcoef(forest_abundance_avg)
@@ -161,30 +117,17 @@ print(f"  ✓ Raw correlation matrix shape: {raw_corr.shape}")
 print(f"  ✓ Partial correlation matrix shape: {partial_corr.shape}")
 
 # ========================================
-# Compute Differences and Mediation
+# Compute Differences 
 # ========================================
 
-print("\nComputing differences and mediation indices...")
+print("\nComputing differences ...")
 
-# Absolute difference
-delta = np.abs(raw_corr - partial_corr)
-
-#mediation_index = np.zeros_like(raw_corr)
-# Proportion of variance explained by nutrients
-mediation_index = 1 - (partial_corr**2) / (raw_corr**2 + 1e-10)
-
+# difference
+delta = partial_corr - raw_corr
 # Set diagonal to NaN (not meaningful)
 np.fill_diagonal(delta, np.nan)
-np.fill_diagonal(mediation_index, np.nan)
 np.fill_diagonal(raw_corr, np.nan)
 np.fill_diagonal(partial_corr, np.nan)
-
-print(f"\nStatistics:")
-print(f"  Mean |Δ|: {np.nanmean(delta):.4f}")
-print(f"  Max |Δ|: {np.nanmax(delta):.4f}")
-print(f"  Mean |mediation index|: {np.nanmean(np.abs(mediation_index)):.4f}")
-print(f"  Median |mediation index|: {np.nanmedian(np.abs(mediation_index)):.4f}")
-
 # ========================================
 # Identify Interaction Types
 # ========================================
@@ -245,12 +188,13 @@ for i, j, r_raw, r_partial in indirect_sorted:
 # ========================================
 # Visualization
 # ========================================
-
 print("\nGenerating visualization...")
 
+# Create the output directory if it doesn't exist
 os.makedirs("partial_correlation_analysis", exist_ok=True)
 
-fig, axes = plt.subplots(2, 2, figsize=(16, 14), constrained_layout=True)
+# Adjust figure size to have 3 plots side by side
+fig, axes = plt.subplots(1, 3, figsize=(18, 6), constrained_layout=True)
 
 # Shared colormap for correlations
 cmap = cmocean.cm.balance
@@ -258,51 +202,32 @@ vmin, vmax = -0.5, 0.5
 norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
 
 # Panel A: Raw correlation
-im0 = axes[0, 0].imshow(raw_corr, cmap=cmap, norm=norm)
-axes[0, 0].set_title("(A) Raw Species-Species Correlation", fontsize=14, fontweight='bold')
-axes[0, 0].set_xlabel("Species index")
-axes[0, 0].set_ylabel("Species index")
-plt.colorbar(im0, ax=axes[0, 0], label="Correlation")
+im0 = axes[0].imshow(raw_corr, cmap=cmap, norm=norm)
+axes[0].set_title("(A) Raw Species-Species Correlation", fontsize=14, fontweight='bold')
+axes[0].set_xlabel("Species index")
+axes[0].set_ylabel("Species index")
+plt.colorbar(im0, ax=axes[0], label="Correlation")
 
 # Panel B: Partial correlation
-im1 = axes[0, 1].imshow(partial_corr, cmap=cmap, norm=norm)
-axes[0, 1].set_title("(B) Partial Correlation\n(controlling for nutrients)", 
-                    fontsize=14, fontweight='bold')
-axes[0, 1].set_xlabel("Species index")
-axes[0, 1].set_ylabel("Species index")
-plt.colorbar(im1, ax=axes[0, 1], label="Partial Correlation")
+im1 = axes[1].imshow(partial_corr, cmap=cmap, norm=norm)
+axes[1].set_title("(B) Partial Correlation\n(controlling for nutrients)", 
+                   fontsize=14, fontweight='bold')
+axes[1].set_xlabel("Species index")
+axes[1].set_ylabel("Species index")
+plt.colorbar(im1, ax=axes[1], label="Partial Correlation")
 
-# Panel C: Absolute difference
-im2 = axes[1, 0].imshow(delta, cmap='YlOrRd', vmin=0, vmax=np.nanpercentile(delta, 95))
-axes[1, 0].set_title("(C) Absolute Difference |Raw - Partial|", 
-                    fontsize=14, fontweight='bold')
-axes[1, 0].set_xlabel("Species index")
-axes[1, 0].set_ylabel("Species index")
-plt.colorbar(im2, ax=axes[1, 0], label="|Δ|")
+# Panel C: Difference
+im2 = axes[2].imshow(delta, cmap='YlOrRd', vmin=0, vmax=np.nanpercentile(delta, 95))
+axes[2].set_title("(C) Difference Partial - Raw", 
+                   fontsize=14, fontweight='bold')
+axes[2].set_xlabel("Species index")
+axes[2].set_ylabel("Species index")
+plt.colorbar(im2, ax=axes[2], label="Δ")
 
-# Panel D: Mediation index
-med_vmax = np.nanpercentile(np.abs(mediation_index), 95)
-im3 = axes[1, 1].imshow(mediation_index, cmap='RdYlGn_r', 
-                       vmin=-med_vmax, vmax=med_vmax)
-axes[1, 1].set_title("(D) Mediation Index\n(Raw - Partial) / Raw", 
-                    fontsize=14, fontweight='bold')
-axes[1, 1].set_xlabel("Species index")
-axes[1, 1].set_ylabel("Species index")
-cbar = plt.colorbar(im3, ax=axes[1, 1], label="Mediation Index")
-cbar.ax.text(0.5, 1.05, '+1 = fully nutrient-mediated', 
-            transform=cbar.ax.transAxes, ha='center', fontsize=9)
-cbar.ax.text(0.5, -0.05, '-1 = nutrients suppress correlation', 
-            transform=cbar.ax.transAxes, ha='center', fontsize=9)
-
-fig.suptitle(f"Raw vs. Partial Correlation Analysis (Resolution: {resolution}m)", 
-            fontsize=16, fontweight='bold')
-
+# Save the figure
 filename = f"partial_correlation_analysis/raw_vs_partial_comparison_{resolution}m.png"
 plt.savefig(filename, dpi=300, bbox_inches='tight')
 print(f"✓ Saved: {filename}")
-
-plt.show()
-
 # ========================================
 # Additional Scatter Plot: Raw vs Partial
 # ========================================
@@ -365,7 +290,6 @@ print("\nSaving results to files...")
 # Save matrices
 np.save(f"partial_correlation_analysis/raw_correlation_{resolution}m.npy", raw_corr)
 np.save(f"partial_correlation_analysis/partial_correlation_{resolution}m.npy", partial_corr)
-np.save(f"partial_correlation_analysis/mediation_index_{resolution}m.npy", mediation_index)
 
 # Save interaction classifications
 with open(f"partial_correlation_analysis/interaction_types_{resolution}m.txt", 'w') as f:

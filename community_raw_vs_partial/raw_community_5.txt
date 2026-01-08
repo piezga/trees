@@ -1,0 +1,23 @@
+RAW Correlation Community 5 (20 species)
+============================================================
+
+  0  hybapr
+  7  hirttr
+  9  tet2pa
+ 15  tachve
+ 16  beilpe
+ 19  quaras
+ 24  oenoma
+ 35  guatdu
+ 41  xyl1ma
+ 43  paligu
+ 44  calolo
+ 47  ingaum
+ 61  chr2ar
+ 65  acaldi
+ 68  ingama
+ 71  tri2pa
+ 81  ingago
+ 96  tripcu
+ 97  licapl
+ 99  micone

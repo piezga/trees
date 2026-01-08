@@ -873,6 +873,7 @@ def plot_corr_with_communities(
     corr_matrix,
     communities,
     outfile,
+    title=None,
     cmap=None,
     vmin=-0.5,
     vmax=0.5,
@@ -896,8 +897,14 @@ def plot_corr_with_communities(
 
     # Plot matrix
     im = plt.imshow(corr_reordered, cmap=cmap, norm=norm)
-    plt.title(f"Filtered Correlation Matrix\n({len(np.unique(communities))} communities)")
+    if title==None:
+
+        plt.title(f"Filtered Correlation Matrix\n({len(np.unique(communities))} communities)")
+    else:
+        plt.title(title)
+
     plt.xlabel("Species (reordered)")
+
     plt.ylabel("Species (reordered)")
 
     # Determine boundaries

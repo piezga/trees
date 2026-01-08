@@ -1,0 +1,12 @@
+PARTIAL Correlation Community 5 (9 species)
+============================================================
+
+ 10  cappfr
+ 14  swars2
+ 23  guargu
+ 58  pipeco
+ 66  socrex
+ 73  sloate
+ 77  coccma
+ 93  cha2sc
+ 94  nectci

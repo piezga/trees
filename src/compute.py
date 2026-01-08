@@ -553,3 +553,58 @@ def compute_filtering_variation(resolution, num_species, calculate=True):
     np.fill_diagonal(difference,0)
 
     return difference, unfil_corr_matrix, fil_corr_matrix
+
+
+def compute_partial_correlation_matrix(species_abundance, nutrient_data, debug=False):
+    """
+    Compute partial correlation matrix between species, controlling for nutrients.
+    
+    Parameters
+    ----------
+    species_abundance : array, shape (n_species, n_sites)
+        Species abundance data (rows = species, cols = spatial bins)
+    nutrient_data : array, shape (n_nutrients, n_sites)
+        Nutrient abundance data (rows = nutrients, cols = spatial bins)
+        
+    Returns
+    -------
+    partial_corr : array, shape (n_species, n_species)
+        Partial correlation matrix between species, controlling for nutrients
+    """
+    from sklearn.linear_model import LinearRegression
+
+    n_species = species_abundance.shape[0]
+    
+    # Transpose so rows are observations (sites) and columns are variables
+    X_species = species_abundance.T  # (n_sites, n_species)
+    X_nutrients = nutrient_data.T    # (n_sites, n_nutrients)
+    if debug :
+        print('DEBUG')
+        print(f'X_species shape = {x_species.shape}')
+        print(f'X_nutrients shape = {x_nutrients.shape}')
+
+    # Store residuals after regressing out nutrients
+    residuals = np.zeros_like(X_species)
+    
+    print("\nComputing partial correlations...")
+    print(f"  Regressing out {X_nutrients.shape[1]} nutrients from {n_species} species...")
+    
+    # For each species, regress out the effect of all nutrients
+    for i in range(n_species):
+        if (i + 1) % 20 == 0:
+            print(f"    Processed {i+1}/{n_species} species...")
+        
+        # Fit: species_i = β₀ + β₁*nutrient₁ + ... + βₖ*nutrientₖ + ε
+        reg = LinearRegression()
+        reg.fit(X_nutrients, X_species[:, i])
+        
+        # Residuals = what's left after removing nutrient effects
+        residuals[:, i] = X_species[:, i] - reg.predict(X_nutrients)
+    
+    # Compute correlation matrix of residuals
+    partial_corr = np.corrcoef(residuals.T)
+    print(f"  ✓ Partial correlation matrix computed")
+    
+    return partial_corr
+
+
