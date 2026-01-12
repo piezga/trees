@@ -139,3 +139,21 @@ Esistono già degli alberi filogenetici fatti. È davvero qualcosa che vogliamo 
 
 Nel caso in cui qualcuno lo chiedesse, il filtro di MP viene fatto dopo che ho calcolato
 le correlazioni parziali perché lo faccio su una matrice di correlazione. È denoising.
+
+# 12/1 
+
+Ho fatto l'analisi con le correlazioni parziali.
+Viene trovata una manciata di coppie correlate che hanno anche correlazione parziale
+alta i.e. ci sono effetti non riconducibili alla variabile "suolo". Questo risultato 
+è coerente con l'aspettativa che a scala 20m siano rilevabili degli effetti di nicchia.
+
+Una coppia rilevata è T. Panamensis + L. Platypus.
+TP è alta e grossa, LP più piccola ed è nota per amare l'ombra di altre piante.
+TP ha fiori grossi LP fiori piccoli (pollinatori diversi?).
+TP ha frutti grossi e succosi (mammiferi) LP ha tipo bacche (uccelli).
+Senza entrare nel dettaglio biologico questi fatti avvalorano l'ipotesi di effetti
+mutualistici di nicchia non strettamente mediati dal suolo.
+
+Per quanto riguarda le comunità ci sono specie che vengono raggruppate allo stesso 
+modo; solitamente la filtered community è un sottoinsieme della raw community.
+Il dendrogramma è simile, le correlazioni un pochino più deboli.
