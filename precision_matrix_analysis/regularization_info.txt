@@ -1,0 +1,17 @@
+LINEAR SHRINKAGE REGULARIZATION RESULTS
+================================================================================
+
+Resolution: 20m
+Number of species: 100
+Training samples: 8750
+Test samples: 1250
+
+Optimal shrinkage parameter: α = 0.0000
+Test log-likelihood: -44.5596
+
+Formula: C_clean = α * M0 + (1-α) * C_empirical
+  α=0.000: shrinkage towards prior
+  (1-α)=1.000: weight on empirical covariance
+
+Precision matrix: J = inv(C_clean)
+Partial correlation: P_ij = -J_ij / sqrt(J_ii * J_jj)
