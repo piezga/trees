@@ -1,0 +1,7 @@
+shrinkage REGULARIZATION RESULTS
+================================================================================
+
+Resolution: 20m
+Number of species: 100
+Precision matrix: J = inv(C_clean)
+Partial correlation: P_ij = -J_ij / sqrt(J_ii * J_jj)
