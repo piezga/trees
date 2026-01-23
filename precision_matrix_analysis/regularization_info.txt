@@ -1,5 +1,0 @@
-LINEAR SHRINKAGE REGULARIZATION RESULTS
-================================================================================
-
-Resolution: 20m
-Number of species: 100

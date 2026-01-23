@@ -7,7 +7,7 @@ from sklearn.linear_model import LinearRegression
 
 from src.config import load_config
 from src.compute import (compute_spectra, compute_average_correlation, 
-                         MarchenkoPastur, compute_partial_correlation_matrix)
+                         MarchenkoPastur, compute_stripped_correlation_matrix)
 
 # ========================================
 # Load Configuration
@@ -24,7 +24,7 @@ forest = 'barro'
 debug = True
 
 print(f"\n{'='*80}")
-print(f"RAW vs PARTIAL CORRELATION ANALYSIS")
+print(f"RAW vs stripped CORRELATION ANALYSIS")
 print(f"Resolution: {resolution}m")
 print(f"{'='*80}\n")
 
@@ -98,24 +98,33 @@ else:
     print(f"  Warning: {nutrient_file} not found")
 
 # ========================================
-# Compute Partial Correlation Matrix
+# Compute stripped Correlation Matrix
 # ========================================
 
 
 print("\nComputing raw correlation matrix...")
 unfiltered_raw_corr = np.corrcoef(forest_abundance_avg)
 
-unfiltered_partial_corr = compute_partial_correlation_matrix(forest_abundance_avg, nutrient_data)
+unfiltered_stripped_corr, stripped_abund = compute_stripped_correlation_matrix(forest_abundance_avg, nutrient_data)
 
 
-# Filtering scatter_raw_vs_partial_
+# Filtering scatter_raw_vs_stripped_
 T = n_sites
 raw_corr = MarchenkoPastur(unfiltered_raw_corr, 100, T)
-partial_corr = MarchenkoPastur(unfiltered_partial_corr, 100, T)
+stripped_corr = MarchenkoPastur(unfiltered_stripped_corr, 100, T)
 
 print(f"  ✓ Raw correlation matrix shape: {raw_corr.shape}")
-print(f"  ✓ Partial correlation matrix shape: {partial_corr.shape}")
+print(f"  ✓ stripped correlation matrix shape: {stripped_corr.shape}")
 
+# Create the output directory if it doesn't exist
+os.makedirs("stripped_correlation_analysis", exist_ok=True)
+
+
+matrix_path = f"stripped_correlation_analysis/stripped_matrix_{resolution}.npy"
+np.save(matrix_path, stripped_corr)
+abund_path = f"stripped_correlation_analysis/stripped_abund_{resolution}.npy"
+np.save(abund_path, stripped_abund)
+print(f'Shape of abund is {stripped_abund.shape}')
 # ========================================
 # Compute Differences 
 # ========================================
@@ -123,11 +132,11 @@ print(f"  ✓ Partial correlation matrix shape: {partial_corr.shape}")
 print("\nComputing differences ...")
 
 # difference
-delta = partial_corr - raw_corr
+delta = stripped_corr - raw_corr
 # Set diagonal to NaN (not meaningful)
 np.fill_diagonal(delta, np.nan)
 np.fill_diagonal(raw_corr, np.nan)
-np.fill_diagonal(partial_corr, np.nan)
+np.fill_diagonal(stripped_corr, np.nan)
 # ========================================
 # Identify Interaction Types
 # ========================================
@@ -137,26 +146,26 @@ print("\nClassifying species pair interactions...")
 threshold_high = 0.3
 threshold_low = 0.1
 
-direct = []          # High raw, high partial → direct interaction
-indirect = []        # High raw, low partial → nutrient-mediated
-weak = []            # Low raw, low partial → weak/no interaction
-emerging = []        # Low raw, high partial → suppressed by nutrients
+direct = []          # High raw, high stripped → direct interaction
+indirect = []        # High raw, low stripped → nutrient-mediated
+weak = []            # Low raw, low stripped → weak/no interaction
+emerging = []        # Low raw, high stripped → suppressed by nutrients
 
 for i in range(num_species):
     for j in range(i+1, num_species):
         r_raw = raw_corr[i, j]
-        r_partial = partial_corr[i, j]
+        r_stripped = stripped_corr[i, j]
         
         if abs(r_raw) > threshold_high:
-            if abs(r_partial) > threshold_high:
-                direct.append((i, j, r_raw, r_partial))
+            if abs(r_stripped) > threshold_high:
+                direct.append((i, j, r_raw, r_stripped))
             else:
-                indirect.append((i, j, r_raw, r_partial))
+                indirect.append((i, j, r_raw, r_stripped))
         else:
-            if abs(r_partial) > threshold_high:
-                emerging.append((i, j, r_raw, r_partial))
+            if abs(r_stripped) > threshold_high:
+                emerging.append((i, j, r_raw, r_stripped))
             else:
-                weak.append((i, j, r_raw, r_partial))
+                weak.append((i, j, r_raw, r_stripped))
 
 total = len(direct) + len(indirect) + len(weak) + len(emerging)
 
@@ -173,25 +182,22 @@ print(f"    → Weak or no association")
 # Show examples
 print(f"\nTop 5 DIRECT interactions:")
 direct_sorted = sorted(direct, key=lambda x: abs(x[3]), reverse=True)[:5]
-for i, j, r_raw, r_partial in direct_sorted:
+for i, j, r_raw, r_stripped in direct_sorted:
     print(f"  Species {i:2d} ({species_names[i][:20]:20s}) ↔ "
           f"Species {j:2d} ({species_names[j][:20]:20s})  "
-          f"raw={r_raw:+.3f}, partial={r_partial:+.3f}")
+          f"raw={r_raw:+.3f}, stripped={r_stripped:+.3f}")
 
 print(f"\nTop 5 INDIRECT (nutrient-mediated) associations:")
 indirect_sorted = sorted(indirect, key=lambda x: abs(x[2]), reverse=True)[:5]
-for i, j, r_raw, r_partial in indirect_sorted:
+for i, j, r_raw, r_stripped in indirect_sorted:
     print(f"  Species {i:2d} ({species_names[i][:20]:20s}) ↔ "
           f"Species {j:2d} ({species_names[j][:20]:20s})  "
-          f"raw={r_raw:+.3f}, partial={r_partial:+.3f}")
+          f"raw={r_raw:+.3f}, stripped={r_stripped:+.3f}")
 
 # ========================================
 # Visualization
 # ========================================
 print("\nGenerating visualization...")
-
-# Create the output directory if it doesn't exist
-os.makedirs("partial_correlation_analysis", exist_ok=True)
 
 # Adjust figure size to have 3 plots side by side
 fig, axes = plt.subplots(1, 3, figsize=(18, 6), constrained_layout=True)
@@ -208,28 +214,28 @@ axes[0].set_xlabel("Species index")
 axes[0].set_ylabel("Species index")
 plt.colorbar(im0, ax=axes[0], label="Correlation")
 
-# Panel B: Partial correlation
-im1 = axes[1].imshow(partial_corr, cmap=cmap, norm=norm)
-axes[1].set_title("(B) Partial Correlation\n(controlling for nutrients)", 
+# Panel B: stripped correlation
+im1 = axes[1].imshow(stripped_corr, cmap=cmap, norm=norm)
+axes[1].set_title("(B) stripped Correlation\n(controlling for nutrients)", 
                    fontsize=14, fontweight='bold')
 axes[1].set_xlabel("Species index")
 axes[1].set_ylabel("Species index")
-plt.colorbar(im1, ax=axes[1], label="Partial Correlation")
+plt.colorbar(im1, ax=axes[1], label="stripped Correlation")
 
 # Panel C: Difference
 im2 = axes[2].imshow(delta, cmap='YlOrRd', vmin=0, vmax=np.nanpercentile(delta, 95))
-axes[2].set_title("(C) Difference Partial - Raw", 
+axes[2].set_title("(C) Difference stripped - Raw", 
                    fontsize=14, fontweight='bold')
 axes[2].set_xlabel("Species index")
 axes[2].set_ylabel("Species index")
 plt.colorbar(im2, ax=axes[2], label="Δ")
 
 # Save the figure
-filename = f"partial_correlation_analysis/raw_vs_partial_comparison_{resolution}m.png"
+filename = f"stripped_correlation_analysis/raw_vs_stripped_comparison_{resolution}m.png"
 plt.savefig(filename, dpi=300, bbox_inches='tight')
 print(f"✓ Saved: {filename}")
 # ========================================
-# Additional Scatter Plot: Raw vs Partial
+# Additional Scatter Plot: Raw vs stripped
 # ========================================
 
 print("\nGenerating scatter plot...")
@@ -239,19 +245,19 @@ fig, ax = plt.subplots(figsize=(10, 10))
 # Get upper triangle indices (excluding diagonal)
 triu_indices = np.triu_indices_from(raw_corr, k=1)
 raw_upper = raw_corr[triu_indices]
-partial_upper = partial_corr[triu_indices]
+stripped_upper = stripped_corr[triu_indices]
 
 # Remove NaN values
-valid_mask = ~(np.isnan(raw_upper) | np.isnan(partial_upper))
+valid_mask = ~(np.isnan(raw_upper) | np.isnan(stripped_upper))
 raw_upper = raw_upper[valid_mask]
-partial_upper = partial_upper[valid_mask]
+stripped_upper = stripped_upper[valid_mask]
 
 # Scatter plot
-ax.scatter(raw_upper, partial_upper, alpha=0.3, s=10, c='steelblue', edgecolors='none')
+ax.scatter(raw_upper, stripped_upper, alpha=0.3, s=10, c='steelblue', edgecolors='none')
 
 # 1:1 line
 lim = max(abs(raw_upper.min()), abs(raw_upper.max()), 
-          abs(partial_upper.min()), abs(partial_upper.max()))
+          abs(stripped_upper.min()), abs(stripped_upper.max()))
 ax.plot([-lim, lim], [-lim, lim], 'k--', alpha=0.5, label='1:1 line')
 
 # Zero lines
@@ -268,14 +274,14 @@ ax.text(0.4, -0.1, 'Nutrient-\nmediated', transform=ax.transData,
         bbox=dict(boxstyle='round', facecolor='orange', alpha=0.3))
 
 ax.set_xlabel('Raw Correlation', fontsize=14, fontweight='bold')
-ax.set_ylabel('Partial Correlation (controlling for nutrients)', fontsize=14, fontweight='bold')
-ax.set_title(f'Raw vs. Partial Correlation Scatter\n(Resolution: {resolution}m)', 
+ax.set_ylabel('stripped Correlation (controlling for nutrients)', fontsize=14, fontweight='bold')
+ax.set_title(f'Raw vs. stripped Correlation Scatter\n(Resolution: {resolution}m)', 
             fontsize=16, fontweight='bold')
 ax.legend(fontsize=12)
 ax.grid(True, alpha=0.3)
 ax.set_aspect('equal')
 
-filename_scatter = f"partial_correlation_analysis/scatter_raw_vs_partial_{resolution}m.png"
+filename_scatter = f"stripped_correlation_analysis/scatter_raw_vs_stripped_{resolution}m.png"
 plt.savefig(filename_scatter, dpi=300, bbox_inches='tight')
 print(f"✓ Saved: {filename_scatter}")
 
@@ -288,47 +294,47 @@ plt.show()
 print("\nSaving results to files...")
 
 # Save matrices
-np.save(f"partial_correlation_analysis/raw_correlation_{resolution}m.npy", raw_corr)
-np.save(f"partial_correlation_analysis/partial_correlation_{resolution}m.npy", partial_corr)
+np.save(f"stripped_correlation_analysis/raw_correlation_{resolution}m.npy", raw_corr)
+np.save(f"stripped_correlation_analysis/stripped_correlation_{resolution}m.npy", stripped_corr)
 
 # Save interaction classifications
-with open(f"partial_correlation_analysis/interaction_types_{resolution}m.txt", 'w') as f:
+with open(f"stripped_correlation_analysis/interaction_types_{resolution}m.txt", 'w') as f:
     f.write(f"INTERACTION TYPE CLASSIFICATION\n")
     f.write(f"Resolution: {resolution}m\n")
     f.write(f"Threshold for 'high' correlation: {threshold_high}\n")
     f.write(f"="*80 + "\n\n")
     
     f.write(f"DIRECT INTERACTIONS ({len(direct)} pairs)\n")
-    f.write(f"High raw correlation, high partial correlation → likely true species interaction\n")
+    f.write(f"High raw correlation, high stripped correlation → likely true species interaction\n")
     f.write("-"*80 + "\n")
-    for i, j, r_raw, r_partial in sorted(direct, key=lambda x: abs(x[3]), reverse=True):
+    for i, j, r_raw, r_stripped in sorted(direct, key=lambda x: abs(x[3]), reverse=True):
         f.write(f"  {i:3d} ({species_names[i][:30]:30s}) ↔ "
                f"{j:3d} ({species_names[j][:30]:30s})  "
-               f"raw={r_raw:+.3f}, partial={r_partial:+.3f}\n")
+               f"raw={r_raw:+.3f}, stripped={r_stripped:+.3f}\n")
     
     f.write(f"\n\nINDIRECT (NUTRIENT-MEDIATED) ASSOCIATIONS ({len(indirect)} pairs)\n")
-    f.write(f"High raw correlation, low partial correlation → shared nutrient preferences\n")
+    f.write(f"High raw correlation, low stripped correlation → shared nutrient preferences\n")
     f.write("-"*80 + "\n")
-    for i, j, r_raw, r_partial in sorted(indirect, key=lambda x: abs(x[2]), reverse=True):
+    for i, j, r_raw, r_stripped in sorted(indirect, key=lambda x: abs(x[2]), reverse=True):
         f.write(f"  {i:3d} ({species_names[i][:30]:30s}) ↔ "
                f"{j:3d} ({species_names[j][:30]:30s})  "
-               f"raw={r_raw:+.3f}, partial={r_partial:+.3f}\n")
+               f"raw={r_raw:+.3f}, stripped={r_stripped:+.3f}\n")
     
     f.write(f"\n\nEMERGING INTERACTIONS ({len(emerging)} pairs)\n")
-    f.write(f"Low raw correlation, high partial correlation → nutrients suppress interaction\n")
+    f.write(f"Low raw correlation, high stripped correlation → nutrients suppress interaction\n")
     f.write("-"*80 + "\n")
-    for i, j, r_raw, r_partial in sorted(emerging, key=lambda x: abs(x[3]), reverse=True):
+    for i, j, r_raw, r_stripped in sorted(emerging, key=lambda x: abs(x[3]), reverse=True):
         f.write(f"  {i:3d} ({species_names[i][:30]:30s}) ↔ "
                f"{j:3d} ({species_names[j][:30]:30s})  "
-               f"raw={r_raw:+.3f}, partial={r_partial:+.3f}\n")
+               f"raw={r_raw:+.3f}, stripped={r_stripped:+.3f}\n")
 
-print(f"✓ Saved interaction types to: partial_correlation_analysis/interaction_types_{resolution}m.txt")
+print(f"✓ Saved interaction types to: stripped_correlation_analysis/interaction_types_{resolution}m.txt")
 
 print("\n" + "="*80)
 print("ANALYSIS COMPLETE")
 print("="*80)
-print(f"\nAll results saved to: partial_correlation_analysis/")
-print(f"  • Raw and partial correlation matrices (.npy)")
+print(f"\nAll results saved to: stripped_correlation_analysis/")
+print(f"  • Raw and stripped correlation matrices (.npy)")
 print(f"  • Comparison visualization (.png)")
 print(f"  • Scatter plot (.png)")
 print(f"  • Interaction type classifications (.txt)")

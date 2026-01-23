@@ -157,3 +157,24 @@ mutualistici di nicchia non strettamente mediati dal suolo.
 Per quanto riguarda le comunità ci sono specie che vengono raggruppate allo stesso 
 modo; solitamente la filtered community è un sottoinsieme della raw community.
 Il dendrogramma è simile, le correlazioni un pochino più deboli.
+
+
+# 20/1 
+
+Cambiando il census dei nomi cambiano molto i risultati.
+Questo ha due potenziali:
+    1) da censimento a censimento cambiano molto le top 100 specie
+    2) ho scazzato
+
+# 23/1 
+
+Ora guardiamo i risultati. MP NON VA APPLICATA QUANDO REGOLARIZZO. Gli zeri
+vengono invertiti ed esplodono nella J.
+
+Risultati: 
+
+Le correlazioni parziali recuperano un sottoinsieme dei legami più forti basati sulla correlazione. Emergono due corrispondenze esatte tra l'analisi della regressione e questa delle correlazioni parziali: H. Triandra–Guatteria Lucens (che prima era associazione indiretta) e H. Triandra–L. Platypus (interazione diretta).
+
+La coppia che prima aveva correlazione più forte (G. Lucens–L. Platypus) non compare direttamente nelle correlazioni parziali, ma si scompone nei legami: H. Triandra–Guatteria Lucens e H. Triandra–L. Platypus, indicando una mediazione tramite HT. Questo secondo me è un risultato figo perché scompone esattamente una correlazione indiretta in due correlazioni dirette.
+
+Altre coppie con alta correlazione (ad es. tachve–ingama, cordla–ingama) scompaiono nelle correlazioni parziali, in linea con effetti mediati  piuttosto che da una dipendenza condizionale diretta.

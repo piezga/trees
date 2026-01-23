@@ -65,6 +65,7 @@ def compute_spectra(resolution, num_species, calculate=True):
             path = path_template.format(forest=forest)
             os.makedirs(f"{path}plots", exist_ok=True)
             df, names = load_forest_data(forest, census, num_species)
+
             (spectrum, 
              forest_abundance) = compute_forest_spectrum(df, 
                                                          names, 
@@ -554,10 +555,9 @@ def compute_filtering_variation(resolution, num_species, calculate=True):
 
     return difference, unfil_corr_matrix, fil_corr_matrix
 
-
-def compute_partial_correlation_matrix(species_abundance, nutrient_data, debug=False):
+def compute_stripped_correlation_matrix(species_abundance, nutrient_data, debug=False):
     """
-    Compute partial correlation matrix between species, controlling for nutrients.
+    Remove nutrient effects from species abundance, returning cleaned time series.
     
     Parameters
     ----------
@@ -568,25 +568,27 @@ def compute_partial_correlation_matrix(species_abundance, nutrient_data, debug=F
         
     Returns
     -------
-    partial_corr : array, shape (n_species, n_species)
-        Partial correlation matrix between species, controlling for nutrients
+    stripped_abundance : array, shape (n_species, n_sites)
+        Species abundance with nutrient effects removed (residuals)
+    stripped_corr : array, shape (n_species, n_species)
+        Correlation matrix of stripped abundances
     """
     from sklearn.linear_model import LinearRegression
-
     n_species = species_abundance.shape[0]
     
     # Transpose so rows are observations (sites) and columns are variables
     X_species = species_abundance.T  # (n_sites, n_species)
     X_nutrients = nutrient_data.T    # (n_sites, n_nutrients)
-    if debug :
+    
+    if debug:
         print('DEBUG')
-        print(f'X_species shape = {x_species.shape}')
-        print(f'X_nutrients shape = {x_nutrients.shape}')
-
+        print(f'X_species shape = {X_species.shape}')
+        print(f'X_nutrients shape = {X_nutrients.shape}')
+    
     # Store residuals after regressing out nutrients
     residuals = np.zeros_like(X_species)
     
-    print("\nComputing partial correlations...")
+    print("\nComputing stripped abundances (removing nutrient effects)...")
     print(f"  Regressing out {X_nutrients.shape[1]} nutrients from {n_species} species...")
     
     # For each species, regress out the effect of all nutrients
@@ -601,10 +603,13 @@ def compute_partial_correlation_matrix(species_abundance, nutrient_data, debug=F
         # Residuals = what's left after removing nutrient effects
         residuals[:, i] = X_species[:, i] - reg.predict(X_nutrients)
     
-    # Compute correlation matrix of residuals
-    partial_corr = np.corrcoef(residuals.T)
-    print(f"  ✓ Partial correlation matrix computed")
+    # Transpose back to (n_species, n_sites) format
+    stripped_abundance = residuals.T
     
-    return partial_corr
-
-
+    # Also compute correlation for comparison
+    stripped_corr = np.corrcoef(residuals.T)
+    
+    print(f"  ✓ Stripped abundance shape: {stripped_abundance.shape}")
+    print(f"  ✓ Stripped correlation matrix computed")
+    
+    return stripped_corr, stripped_abundance

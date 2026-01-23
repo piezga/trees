@@ -8,7 +8,8 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.base import BaseEstimator
 
 from src.config import load_config
-from src.compute import compute_spectra, compute_average_correlation
+from src.compute import (compute_spectra, compute_average_correlation,
+    MarchenkoPastur)
 import src.estimators as es
 
 # X is the data (number of samples T (i.e. times) times number-of-features (N) )
@@ -39,7 +40,7 @@ print(f"{'='*80}\n")
 print("Loading species abundance data...")
 
 forest_abundances = np.load(abund_path)
-print(f"Shape of abundances is {forest_abundances.shape}")
+print(f"Shape of abund is {forest_abundances.shape}")
 # Load species names
 names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=4)}"
 with open(names_file, 'r', encoding='utf-8-sig') as f:
@@ -51,16 +52,14 @@ with open(names_file, 'r', encoding='utf-8-sig') as f:
 
 print("\nPreparing data for regularization...")
 
-n_censuses = len(forest_abundances)
-n_sites = forest_abundances[0].shape[1]
+n_sites = forest_abundances.shape[1]
 
-print(f"  Number of censuses available: {n_censuses}")
-print(f"  Number of spatial sites: {n_sites}")
+print(f"Number of spatial sites: {n_sites}")
 
 # Concatenate censuses along sites dimension
-X = np.concatenate(forest_abundances, axis=1).T  # Shape: (T_train, N)
+X = forest_abundances.T  # Shape: (T_train, N)
 
-print(f"\n Data shape: {X.shape} (samples, species)")
+print(f"\nData shape: {X.shape} (samples, species)")
 
 T, N = X.shape
 
@@ -88,7 +87,9 @@ for method in methods:
 
 
     C = X.T @ X / nsamples # empirical covariance
-    C_clean = res["Cclean"] # cleaned covariance
+    C_clean_unfiltered = res["Cclean"] # cleaned covariance
+    #C_clean = MarchenkoPastur(C_clean_unfiltered, N, T) # Filter
+    C_clean = C_clean_unfiltered
 
 # ========================================
 # Compute Precision Matrix (Inverse)
@@ -103,35 +104,6 @@ for method in methods:
 
     print(f"  ✓ Precision matrix shape: {J_clean.shape}")
     print(f"  ✓ Precision matrix range: [{J_clean.min():.3f}, {J_clean.max():.3f}]")
-
-# ========================================
-# Top pairs
-# ========================================
-
-    # mask: upper triangle, excluding diagonal
-    mask = np.triu(np.ones_like(J_clean, dtype=bool), k=1)
-
-# extract positive values only
-    values = J_clean[mask]
-    positive_mask = values > 0
-    positive_values = values[positive_mask]
-
-# indices of top n positive values
-
-    n = 15
-
-    topn_idx = np.argsort(positive_values)[-n:][::-1]
-
-# map back to matrix indices
-    upper_indices = np.argwhere(mask)
-    positive_indices = upper_indices[positive_mask]
-    topn_indices = positive_indices[topn_idx]
-
-    print("\nTop n positive off-diagonal precision matrix entries:")
-
-
-    for i, j in topn_indices:
-        print(f"{species_names[i]:<30}  <->  {species_names[j]:<30}  {J_clean[i, j]:>10.6f}")
 
 # ========================================
 # Standardize Precision Matrix
@@ -164,6 +136,37 @@ for method in methods:
           f"{P_clean[~np.eye(N, dtype=bool)].max():.3f}]")
 
 # ========================================
+# Top pairs
+# ========================================
+
+    # mask: upper triangle, excluding diagonal
+    mask = np.triu(np.ones_like(P_clean, dtype=bool), k=1)
+
+# extract positive values only
+    values = P_clean[mask]
+    positive_mask = values > 0
+    positive_values = values[positive_mask]
+
+# indices of top n positive values
+
+    n = 15
+
+    topn_idx = np.argsort(positive_values)[-n:][::-1]
+
+# map back to matrix indices
+    upper_indices = np.argwhere(mask)
+    positive_indices = upper_indices[positive_mask]
+    topn_indices = positive_indices[topn_idx]
+
+
+    print("\nTop n positive off-diagonal partial correlation matrix entries:")
+
+
+    for i, j in topn_indices:
+        print(f"{species_names[i]:<30}  <->  {species_names[j]:<30}  {P_clean[i, j]:>10.6f}")
+
+
+# ========================================
 # Compare with Empirical Correlation
 # ========================================
 
@@ -172,8 +175,7 @@ for method in methods:
     print("─"*80 + "\n")
 
 # Compute empirical correlation from all data
-    forest_abundance_avg = np.mean(np.array(forest_abundances), axis=0)
-    C_empirical_full = np.corrcoef(forest_abundance_avg)
+    C_empirical_full = np.corrcoef(forest_abundances)
 
     print(f"Empirical correlation statistics:")
     print(f"  Mean off-diagonal: {C_empirical_full[~np.eye(N, dtype=bool)].mean():.4f}")
