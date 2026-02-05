@@ -119,11 +119,6 @@ print(f"  ✓ stripped correlation matrix shape: {stripped_corr.shape}")
 # Create the output directory if it doesn't exist
 os.makedirs("stripped_correlation_analysis", exist_ok=True)
 
-
-matrix_path = f"stripped_correlation_analysis/stripped_matrix_{resolution}.npy"
-np.save(matrix_path, stripped_corr)
-abund_path = f"stripped_correlation_analysis/stripped_abund_{resolution}.npy"
-np.save(abund_path, stripped_abund)
 print(f'Shape of abund is {stripped_abund.shape}')
 # ========================================
 # Compute Differences 
