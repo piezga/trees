@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib as mpl
 import cmocean
 import os
 from sklearn.linear_model import LinearRegression
@@ -190,97 +191,84 @@ for i, j, r_raw, r_stripped in indirect_sorted:
           f"raw={r_raw:+.3f}, stripped={r_stripped:+.3f}")
 
 # ========================================
-# Visualization
+# Visualization - Nature style
 # ========================================
-print("\nGenerating visualization...")
+mpl.rcParams['font.size'] = 8
+mpl.rcParams['axes.linewidth'] = 0.5
+mpl.rcParams['xtick.major.width'] = 0.5
+mpl.rcParams['ytick.major.width'] = 0.5
+mpl.rcParams['xtick.major.size'] = 2
+mpl.rcParams['ytick.major.size'] = 2
 
-# Adjust figure size to have 3 plots side by side
-fig, axes = plt.subplots(1, 3, figsize=(18, 6), constrained_layout=True)
+fig, axes = plt.subplots(1, 3, figsize=(7.08, 2.36), constrained_layout=True, dpi=300)
 
-# Shared colormap for correlations
 cmap = cmocean.cm.balance
 vmin, vmax = -0.5, 0.5
 norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
 
-# Panel A: Raw correlation
-im0 = axes[0].imshow(raw_corr, cmap=cmap, norm=norm)
-axes[0].set_title("(A) Raw Species-Species Correlation", fontsize=14, fontweight='bold')
-axes[0].set_xlabel("Species index")
-axes[0].set_ylabel("Species index")
-plt.colorbar(im0, ax=axes[0], label="Correlation")
+# Panel A
+im0 = axes[0].imshow(raw_corr, cmap=cmap, norm=norm, rasterized=True)
+axes[0].set_title("a", loc='left', fontweight='bold', fontsize=10)
+axes[0].set_xlabel("Species", fontsize=8)
+axes[0].set_ylabel("Species", fontsize=8)
+axes[0].tick_params(labelsize=6)
+cbar0 = plt.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
+cbar0.ax.tick_params(labelsize=6)
+cbar0.set_label("Correlation", fontsize=7)
 
-# Panel B: stripped correlation
-im1 = axes[1].imshow(stripped_corr, cmap=cmap, norm=norm)
-axes[1].set_title("(B) stripped Correlation\n(controlling for nutrients)", 
-                   fontsize=14, fontweight='bold')
-axes[1].set_xlabel("Species index")
-axes[1].set_ylabel("Species index")
-plt.colorbar(im1, ax=axes[1], label="stripped Correlation")
+# Panel B
+im1 = axes[1].imshow(stripped_corr, cmap=cmap, norm=norm, rasterized=True)
+axes[1].set_title("b", loc='left', fontweight='bold', fontsize=10)
+axes[1].set_xlabel("Species", fontsize=8)
+axes[1].set_ylabel("Species", fontsize=8)
+axes[1].tick_params(labelsize=6)
+cbar1 = plt.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
+cbar1.ax.tick_params(labelsize=6)
+cbar1.set_label("Partial corr.", fontsize=7)
 
-# Panel C: Difference
-im2 = axes[2].imshow(delta, cmap='YlOrRd', vmin=0, vmax=np.nanpercentile(delta, 95))
-axes[2].set_title("(C) Difference stripped - Raw", 
-                   fontsize=14, fontweight='bold')
-axes[2].set_xlabel("Species index")
-axes[2].set_ylabel("Species index")
-plt.colorbar(im2, ax=axes[2], label="Δ")
+# Panel C
+im2 = axes[2].imshow(delta, cmap='YlOrRd', vmin=0, vmax=np.nanpercentile(delta, 95), rasterized=True)
+axes[2].set_title("c", loc='left', fontweight='bold', fontsize=10)
+axes[2].set_xlabel("Species", fontsize=8)
+axes[2].set_ylabel("Species", fontsize=8)
+axes[2].tick_params(labelsize=6)
+cbar2 = plt.colorbar(im2, ax=axes[2], fraction=0.046, pad=0.04)
+cbar2.ax.tick_params(labelsize=6)
+cbar2.set_label("|Δ|", fontsize=7)
 
-# Save the figure
-filename = f"stripped_correlation_analysis/raw_vs_stripped_comparison_{resolution}m.png"
-plt.savefig(filename, dpi=300, bbox_inches='tight')
-print(f"✓ Saved: {filename}")
-# ========================================
-# Additional Scatter Plot: Raw vs stripped
-# ========================================
+plt.savefig(f"stripped_correlation_analysis/Fig_matrices_{resolution}m.pdf", dpi=300, bbox_inches='tight')
+plt.savefig(f"stripped_correlation_analysis/Fig_matrices_{resolution}m.png", dpi=600, bbox_inches='tight')
 
-print("\nGenerating scatter plot...")
+# Scatter plot
+fig, ax = plt.subplots(figsize=(3.35, 3.35), dpi=300)
 
-fig, ax = plt.subplots(figsize=(10, 10))
-
-# Get upper triangle indices (excluding diagonal)
 triu_indices = np.triu_indices_from(raw_corr, k=1)
 raw_upper = raw_corr[triu_indices]
 stripped_upper = stripped_corr[triu_indices]
 
-# Remove NaN values
 valid_mask = ~(np.isnan(raw_upper) | np.isnan(stripped_upper))
 raw_upper = raw_upper[valid_mask]
 stripped_upper = stripped_upper[valid_mask]
 
-# Scatter plot
-ax.scatter(raw_upper, stripped_upper, alpha=0.3, s=10, c='steelblue', edgecolors='none')
+ax.scatter(raw_upper, stripped_upper, alpha=0.2, s=1, c='#4575b4', edgecolors='none', rasterized=True)
 
-# 1:1 line
 lim = max(abs(raw_upper.min()), abs(raw_upper.max()), 
           abs(stripped_upper.min()), abs(stripped_upper.max()))
-ax.plot([-lim, lim], [-lim, lim], 'k--', alpha=0.5, label='1:1 line')
+ax.plot([-lim, lim], [-lim, lim], 'k-', linewidth=0.5, alpha=0.8)
 
-# Zero lines
-ax.axhline(0, color='gray', linestyle=':', alpha=0.5)
-ax.axvline(0, color='gray', linestyle=':', alpha=0.5)
+ax.axhline(0, color='gray', linestyle='-', linewidth=0.3, alpha=0.5)
+ax.axvline(0, color='gray', linestyle='-', linewidth=0.3, alpha=0.5)
 
-# Quadrant labels
-ax.text(0.4, 0.4, 'Direct\ninteraction', transform=ax.transData, 
-        ha='center', va='center', fontsize=12, alpha=0.6, 
-        bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.3))
-
-ax.text(0.4, -0.1, 'Nutrient-\nmediated', transform=ax.transData,
-        ha='center', va='center', fontsize=12, alpha=0.6,
-        bbox=dict(boxstyle='round', facecolor='orange', alpha=0.3))
-
-ax.set_xlabel('Raw Correlation', fontsize=14, fontweight='bold')
-ax.set_ylabel('stripped Correlation (controlling for nutrients)', fontsize=14, fontweight='bold')
-ax.set_title(f'Raw vs. stripped Correlation Scatter\n(Resolution: {resolution}m)', 
-            fontsize=16, fontweight='bold')
-ax.legend(fontsize=12)
-ax.grid(True, alpha=0.3)
+ax.set_xlabel('Raw correlation', fontsize=8)
+ax.set_ylabel('Partial correlation', fontsize=8)
+ax.tick_params(labelsize=6)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
 ax.set_aspect('equal')
 
-filename_scatter = f"stripped_correlation_analysis/scatter_raw_vs_stripped_{resolution}m.png"
-plt.savefig(filename_scatter, dpi=300, bbox_inches='tight')
-print(f"✓ Saved: {filename_scatter}")
-
-plt.show()
+plt.tight_layout()
+plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.pdf", dpi=300, bbox_inches='tight')
+plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.png", dpi=600, bbox_inches='tight')
 
 # ========================================
 # Save Results to Files
