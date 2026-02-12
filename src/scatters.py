@@ -186,7 +186,7 @@ def plot_species_spatial_distribution(
 # Simple wrapper for quick plotting
 # ========================================
 
-def raster_plot(*species_indices, census=8, background=None, filename=None, show=True):
+def raster_plot(*species_indices, census=4, background=None, filename=None, show=True):
     """
     Quick plotting function for species spatial distribution.
     
