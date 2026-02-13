@@ -58,8 +58,8 @@ for j in range(n_bins_y + 1):
 
 ax_map.set_xlim(0, 1000)
 ax_map.set_ylim(0, 500)
-ax_map.set_xlabel('X (m)', fontsize=8)
-ax_map.set_ylabel('Y (m)', fontsize=8)
+ax_map.set_xlabel('X (m)', fontsize=10)
+ax_map.set_ylabel('Y (m)', fontsize=10)
 ax_map.set_title('a', loc='left', fontweight='bold', fontsize=10)
 ax_map.tick_params(labelsize=7)
 ax_map.set_aspect('equal')
@@ -87,7 +87,7 @@ for idx, sp_idx in enumerate(species_indices):
     
     ax.set_xlim(0, n_total)
     ax.set_ylim(0, abundance.max() * 1.1)
-    ax.set_ylabel('Count', fontsize=7)
+    ax.set_ylabel('Count', fontsize=17)
     ax.tick_params(labelsize=6)
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -96,7 +96,7 @@ for idx, sp_idx in enumerate(species_indices):
     ax.set_title(panel_label, loc='left', fontweight='bold', fontsize=10)
     
     if idx == len(species_indices) - 1:
-        ax.set_xlabel(f'Spatial bin (L = {L} m)', fontsize=7)
+        ax.set_xlabel(f'Spatial bin', fontsize=7)
     else:
         ax.set_xticklabels([])
 
