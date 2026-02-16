@@ -369,7 +369,7 @@ def plot_correlation_matrices_comparison(
     cmap=None,
     vmin=-0.5,
     vmax=0.5,
-    figsize=(10, 4),
+    figsize=(5, 10),
     filename=None,
     show=True
 ):
@@ -405,7 +405,7 @@ def plot_correlation_matrices_comparison(
     
     norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
     
-    fig, axes = plt.subplots(1, 2, figsize=figsize, constrained_layout=True)
+    fig, axes = plt.subplots(2, 1, figsize=figsize, constrained_layout=True)
     
     # Unfiltered correlation matrix
     axes[0].imshow(unfiltered_corr, cmap=cmap, norm=norm)
