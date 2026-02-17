@@ -200,44 +200,26 @@ mpl.rcParams['ytick.major.width'] = 0.5
 mpl.rcParams['xtick.major.size'] = 2
 mpl.rcParams['ytick.major.size'] = 2
 
-fig, axes = plt.subplots(1, 3, figsize=(7.08, 2.36), constrained_layout=True, dpi=300)
 
-cmap = cmocean.cm.balance
-vmin, vmax = -0.5, 0.5
-norm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=0, vmax=vmax)
 
-# Panel A
-im0 = axes[0].imshow(raw_corr, cmap=cmap, norm=norm, rasterized=True)
-axes[0].set_title("a", loc='left', fontweight='bold', fontsize=10)
-axes[0].set_xlabel("Species", fontsize=8)
-axes[0].set_ylabel("Species", fontsize=8)
-axes[0].tick_params(labelsize=6)
-cbar0 = plt.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
-cbar0.ax.tick_params(labelsize=6)
-cbar0.set_label("Correlation", fontsize=7)
+# Create single figure and axis
+fig, ax = plt.subplots(1, 1, figsize=(4, 3), dpi=300)
 
-# Panel B
-im1 = axes[1].imshow(stripped_corr, cmap=cmap, norm=norm, rasterized=True)
-axes[1].set_title("b", loc='left', fontweight='bold', fontsize=10)
-axes[1].set_xlabel("Species", fontsize=8)
-axes[1].set_ylabel("Species", fontsize=8)
-axes[1].tick_params(labelsize=6)
-cbar1 = plt.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
-cbar1.ax.tick_params(labelsize=6)
-cbar1.set_label("Partial corr.", fontsize=7)
+# Plot the matrix
+im = ax.imshow(delta, cmap='YlOrRd', vmin=0, vmax=np.nanpercentile(delta, 95), rasterized=True)
+ax.set_title("c", loc='left', fontweight='bold', fontsize=10)
+ax.set_xlabel("Species", fontsize=8)
+ax.set_ylabel("Species", fontsize=8)
+ax.tick_params(labelsize=6)
 
-# Panel C
-im2 = axes[2].imshow(delta, cmap='YlOrRd', vmin=0, vmax=np.nanpercentile(delta, 95), rasterized=True)
-axes[2].set_title("c", loc='left', fontweight='bold', fontsize=10)
-axes[2].set_xlabel("Species", fontsize=8)
-axes[2].set_ylabel("Species", fontsize=8)
-axes[2].tick_params(labelsize=6)
-cbar2 = plt.colorbar(im2, ax=axes[2], fraction=0.046, pad=0.04)
-cbar2.ax.tick_params(labelsize=6)
-cbar2.set_label("|Δ|", fontsize=7)
+# Add colorbar
+cbar = plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+cbar.ax.tick_params(labelsize=6)
+cbar.set_label("|Δ|", fontsize=7)
 
-plt.savefig(f"stripped_correlation_analysis/Fig_matrices_{resolution}m.pdf", dpi=300, bbox_inches='tight')
-plt.savefig(f"stripped_correlation_analysis/Fig_matrices_{resolution}m.png", dpi=600, bbox_inches='tight')
+plt.tight_layout()
+plt.savefig(f"stripped_correlation_analysis/delta_matrix_{resolution}m.png", dpi=600, bbox_inches='tight')
+plt.show()
 
 # Scatter plot
 fig, ax = plt.subplots(figsize=(3.35, 3.35), dpi=300)
@@ -250,24 +232,22 @@ valid_mask = ~(np.isnan(raw_upper) | np.isnan(stripped_upper))
 raw_upper = raw_upper[valid_mask]
 stripped_upper = stripped_upper[valid_mask]
 
-ax.scatter(raw_upper, stripped_upper, alpha=0.2, s=1, c='#4575b4', edgecolors='none', rasterized=True)
+ax.scatter(raw_upper, stripped_upper, alpha=1, s=1, c='#4575b4', edgecolors='none', rasterized=True)
 
 lim = max(abs(raw_upper.min()), abs(raw_upper.max()), 
           abs(stripped_upper.min()), abs(stripped_upper.max()))
-ax.plot([-lim, lim], [-lim, lim], 'k-', linewidth=0.5, alpha=0.8)
+ax.plot([-lim, lim], [-lim, lim], 'k-', linewidth=0.5, alpha=1)
 
-ax.axhline(0, color='gray', linestyle='-', linewidth=0.3, alpha=0.5)
-ax.axvline(0, color='gray', linestyle='-', linewidth=0.3, alpha=0.5)
 
-ax.set_xlabel('Raw correlation', fontsize=8)
-ax.set_ylabel('Partial correlation', fontsize=8)
+ax.set_xlabel('Raw correlation', fontsize=10)
+ax.set_ylabel('Correlation after regression', fontsize=10)
 ax.tick_params(labelsize=6)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.set_aspect('equal')
 
 plt.tight_layout()
-plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.pdf", dpi=300, bbox_inches='tight')
+plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.svg", dpi=300, bbox_inches='tight')
 plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.png", dpi=600, bbox_inches='tight')
 
 # ========================================
