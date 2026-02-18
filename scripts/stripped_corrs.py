@@ -257,6 +257,8 @@ plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.png", dpi=
 print("\nSaving results to files...")
 
 # Save matrices
+np.save(f"stripped_correlation_analysis/unfiltered_raw_correlation_{resolution}m.npy", 
+        unfiltered_raw_corr)
 np.save(f"stripped_correlation_analysis/raw_correlation_{resolution}m.npy", raw_corr)
 np.save(f"stripped_correlation_analysis/stripped_correlation_{resolution}m.npy", stripped_corr)
 

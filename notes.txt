@@ -178,3 +178,10 @@ Le correlazioni parziali recuperano un sottoinsieme dei legami più forti basati
 La coppia che prima aveva correlazione più forte (G. Lucens–L. Platypus) non compare direttamente nelle correlazioni parziali, ma si scompone nei legami: H. Triandra–Guatteria Lucens e H. Triandra–L. Platypus, indicando una mediazione tramite HT. Questo secondo me è un risultato figo perché scompone esattamente una correlazione indiretta in due correlazioni dirette.
 
 Altre coppie con alta correlazione (ad es. tachve–ingama, cordla–ingama) scompaiono nelle correlazioni parziali, in linea con effetti mediati  piuttosto che da una dipendenza condizionale diretta.
+
+
+# 18/2 
+
+Nessuna novità sconvolgente. Un paio di cose da tenere a mente 
+    1) Rifattorizzare il codebase in una versione "minimal"
+    2) Esplorare la differenza tra la C_stripped e la C costruita dalle abbondanze str.

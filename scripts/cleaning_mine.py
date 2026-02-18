@@ -51,14 +51,13 @@ with open(names_file, 'r', encoding='utf-8-sig') as f:
 
 print("\nPreparing data for regularization...")
 
-n_censuses = len(forest_abundances)
-n_sites = forest_abundances[0].shape[1]
-
-print(f"  Number of censuses available: {n_censuses}")
+num_species = len(forest_abundances)
+n_sites = forest_abundances[0].shape
+print(f"  Number of censuses available: {num_species}")
 print(f"  Number of spatial sites: {n_sites}")
 
 # Concatenate censuses along sites dimension
-X = np.concatenate(forest_abundances, axis=1).T  # Shape: (T_train, N)
+X = forest_abundances.T  # Shape: (T_train, N)
 
 print(f"\n Data shape: {X.shape} (samples, species)")
 
@@ -104,34 +103,6 @@ for method in methods:
     print(f"  ✓ Precision matrix shape: {J_clean.shape}")
     print(f"  ✓ Precision matrix range: [{J_clean.min():.3f}, {J_clean.max():.3f}]")
 
-# ========================================
-# Top pairs
-# ========================================
-
-    # mask: upper triangle, excluding diagonal
-    mask = np.triu(np.ones_like(J_clean, dtype=bool), k=1)
-
-# extract positive values only
-    values = J_clean[mask]
-    positive_mask = values > 0
-    positive_values = values[positive_mask]
-
-# indices of top n positive values
-
-    n = 15
-
-    topn_idx = np.argsort(positive_values)[-n:][::-1]
-
-# map back to matrix indices
-    upper_indices = np.argwhere(mask)
-    positive_indices = upper_indices[positive_mask]
-    topn_indices = positive_indices[topn_idx]
-
-    print("\nTop n positive off-diagonal precision matrix entries:")
-
-
-    for i, j in topn_indices:
-        print(f"{species_names[i]:<30}  <->  {species_names[j]:<30}  {J_clean[i, j]:>10.6f}")
 
 # ========================================
 # Standardize Precision Matrix
@@ -172,8 +143,7 @@ for method in methods:
     print("─"*80 + "\n")
 
 # Compute empirical correlation from all data
-    forest_abundance_avg = np.mean(np.array(forest_abundances), axis=0)
-    C_empirical_full = np.corrcoef(forest_abundance_avg)
+    C_empirical_full = np.corrcoef(forest_abundances)
 
     print(f"Empirical correlation statistics:")
     print(f"  Mean off-diagonal: {C_empirical_full[~np.eye(N, dtype=bool)].mean():.4f}")
@@ -188,6 +158,34 @@ for method in methods:
     print(f"  Mean off-diagonal: {P_clean[~np.eye(N, dtype=bool)].mean():.4f}")
     print(f"  Std off-diagonal: {P_clean[~np.eye(N, dtype=bool)].std():.4f}")
 
+# ========================================
+# Top pairs
+# ========================================
+
+    # mask: upper triangle, excluding diagonal
+    mask = np.triu(np.ones_like(P_clean, dtype=bool), k=1)
+
+# extract positive values only
+    values = P_clean[mask]
+    positive_mask = values > 0
+    positive_values = values[positive_mask]
+
+# indices of top n positive values
+
+    n = 15
+
+    topn_idx = np.argsort(positive_values)[-n:][::-1]
+
+# map back to matrix indices
+    upper_indices = np.argwhere(mask)
+    positive_indices = upper_indices[positive_mask]
+    topn_indices = positive_indices[topn_idx]
+
+    print("\nTop n positive off-diagonal partial correlation matrix entries:")
+
+
+    for i, j in topn_indices:
+        print(f"{species_names[i]:<30}  <->  {species_names[j]:<30}  {P_clean[i, j]:>10.6f}")
 # ========================================
 # Visualization
 # ========================================
