@@ -49,10 +49,9 @@ for res in resolutions:
     senm_communities.append(n_comm_s)
 
 # === Figure ===
-fig, axes = plt.subplots(1, 2, figsize=(7.08, 3), dpi=300, constrained_layout=True)
+fig, ax = plt.subplots(figsize=(3, 3), dpi=300)
 
 # === Panel A: Spectra with MP ===
-ax = axes[0]
 x = np.arange(1, num_species + 1)
 color = '#ff7f0e'
 mp_color = '#fdbf6f'
@@ -72,8 +71,7 @@ ax.set_xlim(1, 100)
 ax.set_ylim(5e-1, 3.5)
 ax.set_xlabel(r'$\lambda$ rank', fontsize=8)
 ax.set_ylabel(r'$\lambda$', fontsize=8)
-ax.set_title('(a)', loc='left', fontweight='bold', fontsize=10, pad=4)
-ax.grid(True, which="both", linestyle='--', alpha=0.3, linewidth=0.3)
+ax.grid(False)
 ax.tick_params(labelsize=7)
 
 # Inset
@@ -92,11 +90,12 @@ axins.set_yscale('log')
 axins.set_xlim(1, 100)
 axins.set_ylim(0.15, 10)
 axins.set_title('28 m', fontsize=7, pad=2)
-axins.grid(True, which="both", linestyle='--', alpha=0.3, linewidth=0.25)
+axins.grid(False)
 axins.tick_params(labelsize=5)
 
+plt.savefig('figures/mp/spectra.svg', dpi=300, bbox_inches='tight')
 # === Panel B: Communities vs Resolution ===
-ax = axes[1]
+fig, ax = plt.subplots(figsize=(3, 3), dpi=300)
 
 ax.plot(resolutions, forest_communities, 'o-', color='#2ca02c', 
         markersize=3, linewidth=1, label='Forest', markerfacecolor='white', markeredgewidth=0.5, alpha=0.7)
@@ -105,13 +104,12 @@ ax.plot(resolutions, senm_communities, 's--', color='#1f77b4',
 
 ax.set_xlabel('Scale (m)', fontsize=8)
 ax.set_ylabel(r'$N_{\mathrm{comm}}$', fontsize=8)
-ax.set_title('(b)', loc='left', fontweight='bold', fontsize=10, pad=4)
 ax.legend(fontsize=7, frameon=False, loc='best')
-ax.grid(True, alpha=0.3, linewidth=0.3)
+ax.grid(False)
 ax.tick_params(labelsize=7)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 
 # === Save ===
-plt.savefig('figures/Fig_MP_method.svg', dpi=300, bbox_inches='tight')
+plt.savefig('figures/mp/communities.svg', dpi=300, bbox_inches='tight')
 plt.show()
