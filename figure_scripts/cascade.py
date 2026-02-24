@@ -46,7 +46,7 @@ for i, j in pairs_idx:
     pair_trajectories.append(traj)
 
 # === Figure ===
-fig, ax = plt.subplots(figsize=(4, 3.5), dpi=300)
+fig, ax = plt.subplots(figsize=(3, 3), dpi=300)
 
 colors = ['#d62728', '#2ca02c', '#1f77b4']
 
@@ -82,6 +82,5 @@ print("="*80 + "\n")
 
 # === Save ===
 plt.tight_layout()
-plt.savefig('figures/Fig_filtering_trajectories.pdf', dpi=300, bbox_inches='tight')
-plt.savefig('figures/Fig_filtering_trajectories.png', dpi=600, bbox_inches='tight')
+plt.savefig('figures/filtering_trajectories.svg', dpi=600, bbox_inches='tight')
 plt.show()

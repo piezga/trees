@@ -39,7 +39,7 @@ np.fill_diagonal(C_stripped, np.nan)
 np.fill_diagonal(P_partial, np.nan)
 
 # === Figure ===
-fig, axes = plt.subplots(1, 3, figsize=(7.08, 2.5), dpi=300, constrained_layout=True)
+fig, axes = plt.subplots(1, 2, figsize=(5, 2.5), dpi=300, constrained_layout=True)
 
 cmap = cmocean.cm.balance
 vmin, vmax = -0.5, 0.5
@@ -63,8 +63,10 @@ axes[1].tick_params(labelsize=7)
 cbar2 = plt.colorbar(im2, ax=axes[1], fraction=0.046, pad=0.04)
 cbar2.ax.tick_params(labelsize=6)
 
+plt.savefig('figures/partial_correlation_result.svg', dpi=600, bbox_inches='tight')
+plt.show()
 # === Panel c: Scatter ===
-ax = axes[2]
+fig, ax = plt.subplots(1, 1, figsize=(3, 3), dpi=300, constrained_layout=True)
 
 # Get upper triangle
 triu = np.triu_indices(num_species, k=1)
@@ -101,6 +103,5 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 
 # === Save ===
-plt.savefig('figures/fig_partial_correlation_result.pdf', dpi=300, bbox_inches='tight')
-plt.savefig('figures/fig_partial_correlation_result.png', dpi=600, bbox_inches='tight')
+plt.savefig('figures/partial_correlation_scatter.svg', dpi=600, bbox_inches='tight')
 plt.show()
