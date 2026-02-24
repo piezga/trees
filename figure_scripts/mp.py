@@ -94,7 +94,65 @@ axins.grid(False)
 axins.tick_params(labelsize=5)
 
 plt.savefig('figures/mp/spectra.svg', dpi=300, bbox_inches='tight')
-# === Panel B: Communities vs Resolution ===
+
+# === Panel B: Eigenvalue Density vs Marchenko-Pastur ===
+
+def marchpast(l, g):
+    "Marchenko-Pastur distribution"
+    def m0(a):
+        return np.maximum(a, np.zeros_like(a))
+    gplus  = (1 + g**0.5)**2
+    gminus = (1 - g**0.5)**2
+    return np.sqrt(m0(gplus - l) * m0(l - gminus)) / (2 * np.pi * g * l)
+
+# g = p/n: num_species / num_sites
+
+chosen_res = 28
+
+if chosen_res == 28:
+    n_bins_x = res_28_bins[0]
+    n_bins_y = res_28_bins[1]
+    all_eigs = np.concatenate(res_28_forest_list)
+elif chosen_res == 9:
+    n_bins_x = res_9_bins[0]
+    n_bins_y = res_9_bins[1]
+    all_eigs = np.concatenate(res_9_forest_list)
+
+g = num_species / (n_bins_x * n_bins_y)
+
+
+bins = np.logspace(np.log10(all_eigs.min()), np.log10(all_eigs.max()), 40)
+counts, edges = np.histogram(all_eigs, bins=bins)
+centers = np.sqrt(edges[:-1] * edges[1:])          # geometric bin centers
+density  = counts / (all_eigs.size * (edges[1:] - edges[:-1]))
+
+l_mp = np.linspace((1 - g**0.5)**2 * 1.001, (1 + g**0.5)**2 * 0.999, 500)
+rho_mp = marchpast(l_mp, g)
+
+fig, ax = plt.subplots(figsize=(3, 3), dpi=300)
+
+ax.plot(centers, density, 
+       color='#ff7f0e', alpha=0.55, linestyle='--', label='Empirical')
+ax.scatter(centers, density, 
+       color='#ff7f0e', alpha=1, )
+ax.plot(l_mp, rho_mp, color='#1f77b4', linewidth=0.8,
+        linestyle='--', label='Marchenko–Pastur')
+
+ax.set_xscale('log')
+ax.set_yscale('log')
+ax.set_xlabel(r'$\lambda$', fontsize=8)
+ax.set_ylabel(r'$\rho(\lambda)$', fontsize=8)
+ax.tick_params(labelsize=7, which='both', direction='in',
+               top=True, right=True, width=0.5, length=2)
+ax.legend(fontsize=6, frameon=False)
+for sp in ax.spines.values():
+    sp.set_linewidth(0.5)
+
+fig.tight_layout()
+fig.savefig('figures/mp/eigenvalue_density.svg', format='svg',
+            dpi=300, bbox_inches='tight')
+
+# === Panel C: Communities vs Resolution ===
 fig, ax = plt.subplots(figsize=(3, 3), dpi=300)
 
 ax.plot(resolutions, forest_communities, 'o-', color='#2ca02c', 
