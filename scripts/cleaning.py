@@ -13,7 +13,6 @@ from src.compute import (compute_spectra, compute_average_correlation,
 import src.estimators as es
 
 # X is the data (number of samples T (i.e. times) times number-of-features (N) )
-
 # ========================================
 # Load Configuration
 # ========================================
@@ -22,10 +21,10 @@ config = load_config()
 num_species = config['analysis']['num_species']
 path_template = config['forests']['templates']['path_template']
 names_template = config['forests']['templates']['names_template']
+forest = config['forests']['name']
 
 # Parameters
 resolution = 20
-forest = 'barro'
 abund_path = f"stripped_correlation_analysis/stripped_abund_{resolution}.npy"
 
 print(f"\n{'='*80}")
