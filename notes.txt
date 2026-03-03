@@ -185,3 +185,8 @@ Altre coppie con alta correlazione (ad es. tachve–ingama, cordla–ingama) sco
 Nessuna novità sconvolgente. Un paio di cose da tenere a mente 
     1) Rifattorizzare il codebase in una versione "minimal"
     2) Esplorare la differenza tra la C_stripped e la C costruita dalle abbondanze str.
+
+# 3/3
+
+MP e partial correlations? Io non l'ho messo perché tutti quegli zeri poi mi davano 
+divergenze nella matrice inversa, però di fatto non sto filtrando quel rumore.
