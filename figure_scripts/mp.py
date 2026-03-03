@@ -19,14 +19,22 @@ plt.rcParams['ytick.major.width'] = 0.5
 plt.rcParams['lines.linewidth'] = 1
 plt.rcParams['lines.markersize'] = 3
 
+
 # === Load data for Panel A ===
-res_28_forest_list = np.load(f'quantities/{forest}_forest_spectra_{num_species}_28.npy')
+res_28_forest_list = np.load(f'quantities/{forest}_forest_spectra_{num_species}_28.npy') 
 res_28_bins = np.load(f'quantities/{forest}_bins_{num_species}_28.npy')
 res_9_forest_list = np.load(f'quantities/{forest}_forest_spectra_{num_species}_9.npy')
 res_9_bins = np.load(f'quantities/{forest}_bins_{num_species}_9.npy')
 
+res_28_senm = np.load(f'quantities/{forest}_senm_spectrum_{num_species}_28.npy') 
+res_9_senm = np.load(f'quantities/{forest}_senm_spectrum_{num_species}_9.npy')
+
 lambda_min_forest_28, lambda_max_forest_28 = marchenko_pastur_bounds(num_species, res_28_bins[2], res_28_bins[3])
 lambda_min_forest_9, lambda_max_forest_9 = marchenko_pastur_bounds(num_species, res_9_bins[2], res_9_bins[3])
+
+lambda_min_senm_28, lambda_max_senm_28 = marchenko_pastur_bounds(num_species, res_28_bins[0], res_28_bins[1])
+lambda_min_senm_9, lambda_max_senm_9 = marchenko_pastur_bounds(num_species, res_9_bins[0], res_9_bins[1])
+
 
 # === Load data for Panel B ===
 resolutions = np.arange(4, 34, 1)
@@ -48,22 +56,40 @@ for res in resolutions:
     forest_communities.append(n_comm_f)
     senm_communities.append(n_comm_s)
 
+# === Panel A: Spectra with MP ===
+
 # === Figure ===
 fig, ax = plt.subplots(figsize=(3, 3), dpi=300)
 
-# === Panel A: Spectra with MP ===
+
 x = np.arange(1, num_species + 1)
-color = '#ff7f0e'
-mp_color = '#fdbf6f'
+forest_color = '#2ca02c'
+senm_color = '#1f77b4'
+forest_mp_color = '#98df8a'  
+senm_mp_color = '#aec7e8'   
 
-for spectrum in res_9_forest_list:
-    ax.plot(x, spectrum, 'o-', color=color, markersize=2, alpha=0.5,
-            markerfacecolor='white', markeredgewidth=0.5, linewidth=0.5)
+# Plot mean forest spectrum (main)
+mean_forest_9 = np.mean(res_9_forest_list, axis=0)
+ax.plot(x, mean_forest_9, 'o-', color=forest_color, markersize=2,
+        markerfacecolor='white', markeredgewidth=0.5, linewidth=0.5,
+        label='Forest')
 
-ax.axhline(lambda_max_forest_9, color=mp_color, linestyle='--', linewidth=0.2, alpha=0.8)
-ax.axhline(lambda_min_forest_9, color=mp_color, linestyle='--', linewidth=0.2, alpha=0.8)
-ax.fill_between(x, lambda_min_forest_9, lambda_max_forest_9, 
-                color=mp_color, alpha=0.5, linewidth=0)
+# Plot SENM spectrum (main)
+ax.plot(x, res_9_senm, 's-', color=senm_color, markersize=2,
+        markerfacecolor='white', markeredgewidth=0.5, linewidth=0.5,
+        label='SENM')
+
+# MP bounds for forest (main)
+ax.axhline(lambda_max_forest_9, color=forest_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+ax.axhline(lambda_min_forest_9, color=forest_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+#ax.fill_between(x, lambda_min_forest_9, lambda_max_forest_9, 
+#                color=forest_mp_color, alpha=0.5, linewidth=0, label='MP forest')
+
+# MP bounds for SENM (main)
+ax.axhline(lambda_max_senm_9, color=senm_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+ax.axhline(lambda_min_senm_9, color=senm_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+#ax.fill_between(x, lambda_min_senm_9, lambda_max_senm_9, 
+#                color=senm_mp_color, alpha=0.5, linewidth=0, label='MP SENM')
 
 ax.set_xscale('log')
 ax.set_yscale('log')
@@ -73,17 +99,31 @@ ax.set_xlabel(r'$\lambda$ rank', fontsize=8)
 ax.set_ylabel(r'$\lambda$', fontsize=8)
 ax.grid(False)
 ax.tick_params(labelsize=7)
+ax.legend(fontsize=6, loc='lower left')
 
 # Inset
 axins = inset_axes(ax, width="35%", height="35%", loc='upper right', borderpad=1)
-for spectrum in res_28_forest_list:
-    axins.plot(x, spectrum, 'o-', color=color, markersize=1.5, alpha=0.5,
-               markerfacecolor='white', markeredgewidth=0.4, linewidth=0.4)
 
-axins.axhline(lambda_max_forest_28, color=mp_color, linestyle='--', linewidth=0.2, alpha=0.8)
-axins.axhline(lambda_min_forest_28, color=mp_color, linestyle='--', linewidth=0.2, alpha=0.8)
-axins.fill_between(x, lambda_min_forest_28, lambda_max_forest_28, 
-                    color=mp_color, alpha=0.5, linewidth=0)
+# Plot mean forest spectrum (inset)
+mean_forest_28 = np.mean(res_28_forest_list, axis=0)
+axins.plot(x, mean_forest_28, 'o-', color=forest_color, markersize=1.5,
+           markerfacecolor='white', markeredgewidth=0.4, linewidth=0.4)
+
+# Plot SENM spectrum (inset)
+axins.plot(x, res_28_senm, 's-', color=senm_color, markersize=1.5,
+           markerfacecolor='white', markeredgewidth=0.4, linewidth=0.4)
+
+# MP bounds for forest (inset)
+axins.axhline(lambda_max_forest_28, color=forest_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+axins.axhline(lambda_min_forest_28, color=forest_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+#axins.fill_between(x, lambda_min_forest_28, lambda_max_forest_28, 
+#                   color=forest_mp_color, alpha=0.5, linewidth=0)
+
+# MP bounds for SENM (inset)
+axins.axhline(lambda_max_senm_28, color=senm_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+axins.axhline(lambda_min_senm_28, color=senm_mp_color, linestyle='--', linewidth=0.8, alpha=0.8)
+#axins.fill_between(x, lambda_min_senm_28, lambda_max_senm_28, 
+#                  color=senm_mp_color, alpha=0.5, linewidth=0)
 
 axins.set_xscale('log')
 axins.set_yscale('log')
@@ -94,6 +134,7 @@ axins.grid(False)
 axins.tick_params(labelsize=5)
 
 plt.savefig('figures/mp/spectra.svg', dpi=300, bbox_inches='tight')
+
 
 # === Panel B: Eigenvalue Density vs Marchenko-Pastur ===
 
