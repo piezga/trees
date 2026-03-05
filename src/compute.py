@@ -558,6 +558,7 @@ def compute_filtering_variation(resolution, num_species, calculate=True):
 def compute_stripped_correlation_matrix(species_abundance, nutrient_data, debug=False):
     """
     Remove nutrient effects from species abundance, returning cleaned time series.
+    Fits a linear + quadratic (squared) model for each nutrient.
     
     Parameters
     ----------
@@ -568,48 +569,44 @@ def compute_stripped_correlation_matrix(species_abundance, nutrient_data, debug=
         
     Returns
     -------
-    stripped_abundance : array, shape (n_species, n_sites)
-        Species abundance with nutrient effects removed (residuals)
     stripped_corr : array, shape (n_species, n_species)
         Correlation matrix of stripped abundances
+    stripped_abundance : array, shape (n_species, n_sites)
+        Species abundance with nutrient effects removed (residuals)
     """
     from sklearn.linear_model import LinearRegression
     n_species = species_abundance.shape[0]
-    
-    # Transpose so rows are observations (sites) and columns are variables
-    X_species = species_abundance.T  # (n_sites, n_species)
-    X_nutrients = nutrient_data.T    # (n_sites, n_nutrients)
-    
+
+    X_species  = species_abundance.T   # (n_sites, n_species)
+    X_nutrients = nutrient_data.T      # (n_sites, n_nutrients)
+
+    # Build design matrix: [N, N²] for each nutrient
+    X_design = np.hstack([X_nutrients, X_nutrients ** 2])  # (n_sites, 2*n_nutrients)
+
     if debug:
         print('DEBUG')
-        print(f'X_species shape = {X_species.shape}')
+        print(f'X_species shape  = {X_species.shape}')
         print(f'X_nutrients shape = {X_nutrients.shape}')
-    
-    # Store residuals after regressing out nutrients
+        print(f'X_design shape   = {X_design.shape}  (linear + quadratic terms)')
+
     residuals = np.zeros_like(X_species)
-    
-    print("\nComputing stripped abundances (removing nutrient effects)...")
-    print(f"  Regressing out {X_nutrients.shape[1]} nutrients from {n_species} species...")
-    
-    # For each species, regress out the effect of all nutrients
+
+    print("\nComputing stripped abundances (removing nutrient effects, linear + quadratic)...")
+    print(f"  Regressing out {X_nutrients.shape[1]} nutrients "
+          f"({X_design.shape[1]} terms) from {n_species} species...")
+
     for i in range(n_species):
         if (i + 1) % 20 == 0:
             print(f"    Processed {i+1}/{n_species} species...")
-        
-        # Fit: species_i = β₀ + β₁*nutrient₁ + ... + βₖ*nutrientₖ + ε
+
         reg = LinearRegression()
-        reg.fit(X_nutrients, X_species[:, i])
-        
-        # Residuals = what's left after removing nutrient effects
-        residuals[:, i] = X_species[:, i] - reg.predict(X_nutrients)
-    
-    # Transpose back to (n_species, n_sites) format
+        reg.fit(X_design, X_species[:, i])
+        residuals[:, i] = X_species[:, i] - reg.predict(X_design)
+
     stripped_abundance = residuals.T
-    
-    # Also compute correlation for comparison
-    stripped_corr = np.corrcoef(residuals.T)
-    
+    stripped_corr      = np.corrcoef(residuals.T)
+
     print(f"  ✓ Stripped abundance shape: {stripped_abundance.shape}")
     print(f"  ✓ Stripped correlation matrix computed")
-    
+
     return stripped_corr, stripped_abundance

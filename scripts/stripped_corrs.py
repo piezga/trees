@@ -57,7 +57,6 @@ print("\nLoading nutrient data...")
 
 nutrient_file = 'soil_data/barro_soil_data.xls'
 
-# Replace this with your actual data loading code
 if os.path.exists(nutrient_file):
     import pandas as pd
     nutrient_df = pd.read_excel(nutrient_file)
@@ -219,7 +218,6 @@ cbar.set_label("|Δ|", fontsize=7)
 
 plt.tight_layout()
 plt.savefig(f"stripped_correlation_analysis/delta_matrix_{resolution}m.png", dpi=600, bbox_inches='tight')
-plt.show()
 
 # Scatter plot
 fig, ax = plt.subplots(figsize=(3.35, 3.35), dpi=300)
@@ -227,28 +225,37 @@ fig, ax = plt.subplots(figsize=(3.35, 3.35), dpi=300)
 triu_indices = np.triu_indices_from(raw_corr, k=1)
 raw_upper = raw_corr[triu_indices]
 stripped_upper = stripped_corr[triu_indices]
+pairs = [(68, 15), (15, 41), (68, 30)]
 
 valid_mask = ~(np.isnan(raw_upper) | np.isnan(stripped_upper))
 raw_upper = raw_upper[valid_mask]
 stripped_upper = stripped_upper[valid_mask]
 
-ax.scatter(raw_upper, stripped_upper, alpha=1, s=1, c='#4575b4', edgecolors='none', rasterized=True)
+ax.scatter(raw_upper, stripped_upper, alpha=0.8, s=1, c='#000000', edgecolors='none', rasterized=True)
+
+
+# Plot specific pairs in red 
+for i, j in pairs:
+    # Directly index the original correlation matrices
+    ax.scatter(raw_corr[i, j], stripped_corr[i, j], 
+              alpha=1.0, s=5, c='red', edgecolors='black', linewidth=0.5,
+              label=f'({i},{j})' if (i,j) == pairs[0] else "")
 
 lim = max(abs(raw_upper.min()), abs(raw_upper.max()), 
           abs(stripped_upper.min()), abs(stripped_upper.max()))
-ax.plot([-lim, lim], [-lim, lim], 'k-', linewidth=0.5, alpha=1)
+ax.plot([-lim, lim], [-lim, lim],'-', c='#4575b4', linewidth=0.8, alpha=1)
 
 
-ax.set_xlabel('Raw correlation', fontsize=10)
-ax.set_ylabel('Correlation after regression', fontsize=10)
+ax.set_xlabel('MP-filtered correlation', fontsize=10)
+ax.set_ylabel('MP-filtered correlation after regression', fontsize=10)
 ax.tick_params(labelsize=6)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.set_aspect('equal')
 
 plt.tight_layout()
-plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.svg", dpi=300, bbox_inches='tight')
-plt.savefig(f"stripped_correlation_analysis/Fig_scatter_{resolution}m.png", dpi=600, bbox_inches='tight')
+plt.savefig(f"stripped_correlation_analysis/scatter_raw_vs_stripped_{resolution}m.svg", dpi=300, bbox_inches='tight')
+plt.savefig(f"stripped_correlation_analysis/scatter_raw_vs_stripped_{resolution}m.png", dpi=600, bbox_inches='tight')
 
 # ========================================
 # Save Results to Files

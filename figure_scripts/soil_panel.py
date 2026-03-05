@@ -140,44 +140,6 @@ def style_ax(ax):
 
 
 # ============================================================
-# Panel a: N heatmap
-# ============================================================
-
-fig, ax = plt.subplots(figsize=(3.5, 2.0), dpi=300)
-im = ax.imshow(grid_N, origin='lower', cmap='YlGn',
-               extent=[0, 1000, 0, 500], aspect='equal',
-               interpolation='nearest')
-cbar = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.04)
-cbar.ax.tick_params(labelsize=6)
-cbar.set_label('N (g/kg)', fontsize=7)
-ax.set_xlabel('X (m)', fontsize=7)
-ax.set_ylabel('Y (m)', fontsize=7)
-style_ax(ax)
-fig.tight_layout()
-fig.savefig('figures/panel_2/panel_a_N.svg', format='svg', bbox_inches='tight')
-plt.close(fig)
-print("  ✓ panel_a_N.svg")
-
-# ============================================================
-# Panel b: pH heatmap
-# ============================================================
-
-fig, ax = plt.subplots(figsize=(3.5, 2.0), dpi=300)
-im = ax.imshow(grid_pH, origin='lower', cmap='RdYlBu',
-               extent=[0, 1000, 0, 500], aspect='equal',
-               interpolation='nearest')
-cbar = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.04)
-cbar.ax.tick_params(labelsize=6)
-cbar.set_label('pH', fontsize=7)
-ax.set_xlabel('X (m)', fontsize=7)
-ax.set_ylabel('Y (m)', fontsize=7)
-style_ax(ax)
-fig.tight_layout()
-fig.savefig('figures/panel_2/panel_b_pH.svg', format='svg', bbox_inches='tight')
-plt.close(fig)
-print("  ✓ panel_b_pH.svg")
-
-# ============================================================
 # Panel c: Precomputed scatter image
 # ============================================================
 
@@ -190,24 +152,6 @@ fig.savefig('figures/panel_2/panel_c_scatter.svg', format='svg', bbox_inches='ti
 plt.close(fig)
 print("  ✓ panel_c_scatter.svg")
 
-# ============================================================
-# Panel d: Delta heatmap
-# ============================================================
-
-fig, ax = plt.subplots(figsize=(3.5, 3.5), dpi=300)
-vmax = np.nanpercentile(np.abs(delta), 95)
-norm = mcolors.TwoSlopeNorm(vmin=-vmax, vcenter=0, vmax=vmax)
-im_d = ax.imshow(delta, cmap=cmocean.cm.balance, norm=norm, rasterized=True)
-cbar = plt.colorbar(im_d, ax=ax, fraction=0.046, pad=0.04)
-cbar.ax.tick_params(labelsize=6)
-cbar.set_label(r'$\Delta\rho$', fontsize=7)
-ax.set_xlabel('Species', fontsize=7)
-ax.set_ylabel('Species', fontsize=7)
-style_ax(ax)
-fig.tight_layout()
-fig.savefig('figures/panel_2/panel_d_delta.svg', format='svg', bbox_inches='tight')
-plt.close(fig)
-print("  ✓ panel_d_delta.svg")
 
 # ============================================================
 # Panels e, f, g: Species raster plots

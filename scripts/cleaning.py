@@ -9,7 +9,7 @@ from sklearn.base import BaseEstimator
 
 from src.config import load_config
 from src.compute import (compute_spectra, compute_average_correlation,
-    MarchenkoPastur)
+    MarchenkoPastur, compute_stripped_correlation_matrix)
 import src.estimators as es
 
 # X is the data (number of samples T (i.e. times) times number-of-features (N) )
@@ -36,10 +36,63 @@ print(f"{'='*80}\n")
 # Load Species Data
 # ========================================
 
-print("Loading species abundance data...")
 
-forest_abundances = np.load(abund_path)
+print("Loading species abundance data...")
+(senm_mean, senm_std, forest_spectra, 
+ bins, senm_abundance, forest_abundances) = compute_spectra(
+    resolution, num_species=num_species, calculate=False
+)
+
 print(f"Shape of abund is {forest_abundances.shape}")
+
+
+forest_abundance_avg = np.mean(np.array(forest_abundances), axis=0)
+
+print("\nLoading nutrient data...")
+
+nutrient_file = 'soil_data/barro_soil_data.xls'
+
+if os.path.exists(nutrient_file):
+    import pandas as pd
+    nutrient_df = pd.read_excel(nutrient_file)
+    
+    # Assuming columns are: x, y, Al,  etc
+    nutrient_columns = ['Al', 'B', 'Ca', 'Cu', 'Fe', 'K', 'Mg', 'Mn', 'P', 'Zn', 'N', 'N(min)', 'pH']
+    
+    # Create spatial bins matching species data
+    n_bins_x = bins[2]
+    n_bins_y = bins[3]
+    
+    # Bin the nutrient data to match species resolution
+    nutrient_df['x_bin'] = (nutrient_df['x'] / (1000 / n_bins_x)).astype(int).clip(0, n_bins_x - 1)
+    nutrient_df['y_bin'] = (nutrient_df['y'] / (500 / n_bins_y)).astype(int).clip(0, n_bins_y - 1)
+    
+    # Average nutrients within each bin
+    nutrient_binned = nutrient_df.groupby(['x_bin', 'y_bin'])[nutrient_columns].mean()
+    
+    # Convert to array format (n_nutrients, n_sites)
+    n_sites = n_bins_x * n_bins_y
+    nutrients = np.zeros((len(nutrient_columns), n_sites))
+    
+    for idx, (x_bin, y_bin) in enumerate([(x, y) for x in range(n_bins_x) for y in range(n_bins_y)]):
+        if (x_bin, y_bin) in nutrient_binned.index:
+            nutrients[:, idx] = nutrient_binned.loc[(x_bin, y_bin)].values
+        else:
+            # Fill missing bins with mean or nearest neighbor
+            nutrients[:, idx] = np.nan
+    
+    # Fill NaN values with column means
+    for i in range(nutrients.shape[0]):
+        col_mean = np.nanmean(nutrients[i, :])
+        nutrients[i, np.isnan(nutrients[i, :])] = col_mean
+    
+    print(f"  Nutrient data shape: {nutrients.shape}")
+    print(f"  Nutrients: {nutrient_columns}")
+
+else:
+    print(f"  Warning: {nutrient_file} not found")
+
+regressed_correlation, regressed_forest_abundances = compute_stripped_correlation_matrix(forest_abundance_avg, nutrients)
 # Load species names
 names_file = f"{path_template.format(forest=forest)}{names_template.format(forest=forest, census=4)}"
 with open(names_file, 'r', encoding='utf-8-sig') as f:
@@ -51,12 +104,12 @@ with open(names_file, 'r', encoding='utf-8-sig') as f:
 
 print("\nPreparing data for regularization...")
 
-n_sites = forest_abundances.shape[1]
+n_sites = forest_abundance_avg.shape[1]
 
 print(f"Number of spatial sites: {n_sites}")
 
 # Concatenate censuses along sites dimension
-X = forest_abundances.T  # Shape: (T_train, N)
+X = regressed_forest_abundances.T  # Shape: (T_train, N)
 
 print(f"\nData shape: {X.shape} (samples, species)")
 
@@ -174,7 +227,7 @@ for method in methods:
     print("─"*80 + "\n")
 
 # Compute empirical correlation from all data
-    C_empirical_full = np.corrcoef(forest_abundances)
+    C_empirical_full = np.corrcoef(forest_abundance_avg)
 
     print(f"Empirical correlation statistics:")
     print(f"  Mean off-diagonal: {C_empirical_full[~np.eye(N, dtype=bool)].mean():.4f}")

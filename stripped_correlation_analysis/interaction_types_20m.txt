@@ -3,61 +3,62 @@ Resolution: 20m
 Threshold for 'high' correlation: 0.3
 ================================================================================
 
-DIRECT INTERACTIONS (5 pairs)
+DIRECT INTERACTIONS (3 pairs)
 High raw correlation, high stripped correlation → likely true species interaction
 --------------------------------------------------------------------------------
-   35 (guatdu                        ) ↔  97 (licapl                        )  raw=+0.444, stripped=+0.341
-   15 (tachve                        ) ↔  68 (ingama                        )  raw=+0.351, stripped=+0.324
-   71 (tri2pa                        ) ↔  97 (licapl                        )  raw=+0.372, stripped=+0.311
+   35 (guatdu                        ) ↔  97 (licapl                        )  raw=+0.444, stripped=+0.324
     7 (hirttr                        ) ↔  97 (licapl                        )  raw=+0.379, stripped=+0.308
-   10 (cappfr                        ) ↔  62 (anaxpa                        )  raw=-0.332, stripped=-0.306
+   35 (guatdu                        ) ↔  61 (chr2ar                        )  raw=+0.340, stripped=+0.304
 
 
-INDIRECT (NUTRIENT-MEDIATED) ASSOCIATIONS (40 pairs)
+INDIRECT (NUTRIENT-MEDIATED) ASSOCIATIONS (42 pairs)
 High raw correlation, low stripped correlation → shared nutrient preferences
 --------------------------------------------------------------------------------
-   35 (guatdu                        ) ↔  71 (tri2pa                        )  raw=+0.375, stripped=+0.289
-   30 (cordla                        ) ↔  68 (ingama                        )  raw=-0.360, stripped=-0.081
-   10 (cappfr                        ) ↔  94 (nectci                        )  raw=+0.358, stripped=+0.264
-    7 (hirttr                        ) ↔  35 (guatdu                        )  raw=+0.356, stripped=+0.277
-   68 (ingama                        ) ↔  97 (licapl                        )  raw=+0.349, stripped=+0.265
-   15 (tachve                        ) ↔  30 (cordla                        )  raw=-0.349, stripped=-0.147
-   41 (xyl1ma                        ) ↔  68 (ingama                        )  raw=+0.346, stripped=+0.127
-   20 (eugeoe                        ) ↔  50 (loncla                        )  raw=+0.344, stripped=+0.172
-   15 (tachve                        ) ↔  61 (chr2ar                        )  raw=+0.342, stripped=+0.285
-   51 (protco                        ) ↔  73 (sloate                        )  raw=+0.341, stripped=+0.030
-    7 (hirttr                        ) ↔  71 (tri2pa                        )  raw=+0.341, stripped=+0.247
-   72 (herrpu                        ) ↔  83 (micoaf                        )  raw=+0.340, stripped=+0.233
-   35 (guatdu                        ) ↔  61 (chr2ar                        )  raw=+0.340, stripped=+0.292
-   35 (guatdu                        ) ↔  68 (ingama                        )  raw=+0.337, stripped=+0.199
-   77 (coccma                        ) ↔  94 (nectci                        )  raw=+0.337, stripped=+0.258
-   67 (eugene                        ) ↔  72 (herrpu                        )  raw=+0.333, stripped=+0.254
-   66 (socrex                        ) ↔  73 (sloate                        )  raw=+0.331, stripped=+0.125
-   41 (xyl1ma                        ) ↔  51 (protco                        )  raw=+0.329, stripped=+0.146
-   68 (ingama                        ) ↔  73 (sloate                        )  raw=+0.329, stripped=+0.087
-   91 (ingasa                        ) ↔  94 (nectci                        )  raw=+0.328, stripped=+0.150
-   15 (tachve                        ) ↔  35 (guatdu                        )  raw=+0.328, stripped=+0.204
-   61 (chr2ar                        ) ↔  68 (ingama                        )  raw=+0.326, stripped=+0.200
-   15 (tachve                        ) ↔  41 (xyl1ma                        )  raw=+0.325, stripped=+0.090
-   72 (herrpu                        ) ↔  84 (malmsp                        )  raw=+0.325, stripped=+0.296
-   61 (chr2ar                        ) ↔  97 (licapl                        )  raw=+0.325, stripped=+0.234
-   18 (rinosy                        ) ↔  59 (ingaqu                        )  raw=+0.324, stripped=+0.166
-   15 (tachve                        ) ↔  97 (licapl                        )  raw=+0.322, stripped=+0.244
-   18 (rinosy                        ) ↔  80 (pentma                        )  raw=+0.321, stripped=+0.183
-   74 (crotbi                        ) ↔  92 (tropra                        )  raw=-0.320, stripped=-0.171
-   33 (maquco                        ) ↔  58 (pipeco                        )  raw=-0.318, stripped=-0.052
-   20 (eugeoe                        ) ↔  63 (psycma                        )  raw=+0.318, stripped=+0.239
-   30 (cordla                        ) ↔  61 (chr2ar                        )  raw=-0.316, stripped=-0.154
-   30 (cordla                        ) ↔  97 (licapl                        )  raw=-0.316, stripped=-0.222
-   30 (cordla                        ) ↔  86 (alibed                        )  raw=+0.311, stripped=+0.197
-   20 (eugeoe                        ) ↔  33 (maquco                        )  raw=-0.310, stripped=-0.126
-   33 (maquco                        ) ↔  66 (socrex                        )  raw=+0.309, stripped=+0.114
-   18 (rinosy                        ) ↔  57 (talipr                        )  raw=+0.306, stripped=+0.195
-   24 (oenoma                        ) ↔  55 (micoar                        )  raw=-0.305, stripped=-0.121
-   30 (cordla                        ) ↔  58 (pipeco                        )  raw=+0.302, stripped=+0.195
-   57 (talipr                        ) ↔  64 (hassfl                        )  raw=+0.301, stripped=+0.220
+   35 (guatdu                        ) ↔  71 (tri2pa                        )  raw=+0.375, stripped=+0.257
+   71 (tri2pa                        ) ↔  97 (licapl                        )  raw=+0.372, stripped=+0.290
+   30 (cordla                        ) ↔  68 (ingama                        )  raw=-0.360, stripped=-0.087
+   10 (cappfr                        ) ↔  94 (nectci                        )  raw=+0.358, stripped=+0.185
+    7 (hirttr                        ) ↔  35 (guatdu                        )  raw=+0.356, stripped=+0.293
+   15 (tachve                        ) ↔  68 (ingama                        )  raw=+0.351, stripped=+0.284
+   68 (ingama                        ) ↔  97 (licapl                        )  raw=+0.349, stripped=+0.280
+   15 (tachve                        ) ↔  30 (cordla                        )  raw=-0.349, stripped=-0.144
+   41 (xyl1ma                        ) ↔  68 (ingama                        )  raw=+0.346, stripped=+0.125
+   20 (eugeoe                        ) ↔  50 (loncla                        )  raw=+0.344, stripped=+0.146
+   15 (tachve                        ) ↔  61 (chr2ar                        )  raw=+0.342, stripped=+0.281
+   51 (protco                        ) ↔  73 (sloate                        )  raw=+0.341, stripped=+0.041
+    7 (hirttr                        ) ↔  71 (tri2pa                        )  raw=+0.341, stripped=+0.205
+   72 (herrpu                        ) ↔  83 (micoaf                        )  raw=+0.340, stripped=+0.192
+   35 (guatdu                        ) ↔  68 (ingama                        )  raw=+0.337, stripped=+0.169
+   77 (coccma                        ) ↔  94 (nectci                        )  raw=+0.337, stripped=+0.219
+   67 (eugene                        ) ↔  72 (herrpu                        )  raw=+0.333, stripped=+0.198
+   10 (cappfr                        ) ↔  62 (anaxpa                        )  raw=-0.332, stripped=-0.288
+   66 (socrex                        ) ↔  73 (sloate                        )  raw=+0.331, stripped=+0.127
+   41 (xyl1ma                        ) ↔  51 (protco                        )  raw=+0.329, stripped=+0.167
+   68 (ingama                        ) ↔  73 (sloate                        )  raw=+0.329, stripped=+0.045
+   91 (ingasa                        ) ↔  94 (nectci                        )  raw=+0.328, stripped=+0.158
+   15 (tachve                        ) ↔  35 (guatdu                        )  raw=+0.328, stripped=+0.194
+   61 (chr2ar                        ) ↔  68 (ingama                        )  raw=+0.326, stripped=+0.214
+   15 (tachve                        ) ↔  41 (xyl1ma                        )  raw=+0.325, stripped=+0.071
+   72 (herrpu                        ) ↔  84 (malmsp                        )  raw=+0.325, stripped=+0.273
+   61 (chr2ar                        ) ↔  97 (licapl                        )  raw=+0.325, stripped=+0.254
+   18 (rinosy                        ) ↔  59 (ingaqu                        )  raw=+0.324, stripped=+0.150
+   15 (tachve                        ) ↔  97 (licapl                        )  raw=+0.322, stripped=+0.239
+   18 (rinosy                        ) ↔  80 (pentma                        )  raw=+0.321, stripped=+0.186
+   74 (crotbi                        ) ↔  92 (tropra                        )  raw=-0.320, stripped=-0.136
+   33 (maquco                        ) ↔  58 (pipeco                        )  raw=-0.318, stripped=-0.091
+   20 (eugeoe                        ) ↔  63 (psycma                        )  raw=+0.318, stripped=+0.220
+   30 (cordla                        ) ↔  61 (chr2ar                        )  raw=-0.316, stripped=-0.131
+   30 (cordla                        ) ↔  97 (licapl                        )  raw=-0.316, stripped=-0.182
+   30 (cordla                        ) ↔  86 (alibed                        )  raw=+0.311, stripped=+0.162
+   20 (eugeoe                        ) ↔  33 (maquco                        )  raw=-0.310, stripped=-0.142
+   33 (maquco                        ) ↔  66 (socrex                        )  raw=+0.309, stripped=+0.129
+   18 (rinosy                        ) ↔  57 (talipr                        )  raw=+0.306, stripped=+0.206
+   24 (oenoma                        ) ↔  55 (micoar                        )  raw=-0.305, stripped=-0.059
+   30 (cordla                        ) ↔  58 (pipeco                        )  raw=+0.302, stripped=+0.191
+   57 (talipr                        ) ↔  64 (hassfl                        )  raw=+0.301, stripped=+0.243
 
 
-EMERGING INTERACTIONS (0 pairs)
+EMERGING INTERACTIONS (1 pairs)
 Low raw correlation, high stripped correlation → nutrients suppress interaction
 --------------------------------------------------------------------------------
+   42 (randar                        ) ↔  74 (crotbi                        )  raw=+0.143, stripped=+0.300

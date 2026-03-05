@@ -190,3 +190,8 @@ Nessuna novità sconvolgente. Un paio di cose da tenere a mente
 
 MP e partial correlations? Io non l'ho messo perché tutti quegli zeri poi mi davano 
 divergenze nella matrice inversa, però di fatto non sto filtrando quel rumore.
+
+# 5/3
+
+Moore Penrose inverte senza far esplodere gli zeri, però viene una monnezza incredibile.
+Ad ora la pipeline più vicina a quella originale è correlazioni ricostruite post regressione -> inferenza J

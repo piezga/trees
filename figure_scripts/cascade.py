@@ -28,7 +28,7 @@ C_raw_MP   = np.load(f'{input_dir}/raw_correlation_{resolution}m.npy')
 C_stripped = np.load(f'{input_dir}/stripped_correlation_{resolution}m.npy')
 P_partial  = np.load(f'precision_matrix_analysis_shrinkage/P_partial_correlation.npy')
 
-matrices = [C_raw, C_raw_MP, C_stripped, P_partial]
+matrices = [C_raw, C_raw_MP, C_stripped]
 
 # === FIND PAIRS ===
 mask = np.triu(np.ones(num_species, dtype=bool), k=1)
@@ -44,7 +44,7 @@ valid_drops = drop_MP[started_positive_MP]
 valid_indices = np.where(started_positive_MP)[0]
 
 # Get one of the largest drops
-largest_idx = valid_indices[np.argsort(valid_drops)[-5]]  # -2 = second largest
+largest_idx = valid_indices[np.argsort(valid_drops)[-1]]  # -2 = second largest
 mp_pair_idx = (ii[largest_idx], jj[largest_idx])
 mp_pair_names = (species_names[mp_pair_idx[0]], species_names[mp_pair_idx[1]])
 
@@ -74,20 +74,19 @@ all_pairs_label = hardcoded_full  + [
     ('P. costaricensce', 'S. terniflora')]
 
 # === Extract trajectories ===
-stages = ['Raw', 'MP filtered', 'MP + Nutrient\nregression', 'Partial corr.']
+stages = ['Raw', 'MP filtered', 'Nutrient\nregression + MP']
 pair_trajectories = [[M[i, j] for M in matrices] for i, j in all_pairs_idx]
 
 # === Figure ===
 fig, ax = plt.subplots(figsize=(3.5, 3.2), dpi=300)
 
 colors    = ['#d62728', '#2ca02c', '#1f77b4', '#9467bd', '#e377c2']
-linestyle = ['-', '-', '-', '-', '-']   # dashed for auto-found pairs
 
-for idx, (traj, full_name, ls) in enumerate(
-        zip(pair_trajectories, all_pairs_label, linestyle)):
-    ax.plot(range(len(stages)), traj, 'o-',
-            color=colors[idx], linestyle=ls,
-            linewidth=1.2, markersize=4,
+for idx, (traj, full_name) in enumerate(
+        zip(pair_trajectories, all_pairs_label)):
+    ax.plot(range(len(stages)), traj, '-o',
+            color=colors[idx], 
+            linewidth=0.4, markersize=4,
             markerfacecolor='white', markeredgewidth=0.8,
             label=f'{full_name[0]} – {full_name[1]}')
 
@@ -99,7 +98,6 @@ ax.tick_params(labelsize=7, direction='in', top=True, right=False,
                width=0.5, length=2)
 ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
-ax.grid(axis='y', alpha=0.3, linewidth=0.3)
 ax.legend(fontsize=5.5, frameon=False, loc='best')
 
 plt.tight_layout()

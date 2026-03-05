@@ -72,7 +72,7 @@ senm_mp_color = '#aec7e8'
 mean_forest_9 = np.mean(res_9_forest_list, axis=0)
 ax.plot(x, mean_forest_9, 'o-', color=forest_color, markersize=2,
         markerfacecolor='white', markeredgewidth=0.5, linewidth=0.5,
-        label='Forest')
+        label='BCI')
 
 # Plot SENM spectrum (main)
 ax.plot(x, res_9_senm, 's-', color=senm_color, markersize=2,
@@ -197,12 +197,12 @@ fig.savefig('figures/mp/eigenvalue_density.svg', format='svg',
 fig, ax = plt.subplots(figsize=(3, 3), dpi=300)
 
 ax.plot(resolutions, forest_communities, 'o-', color='#2ca02c', 
-        markersize=3, linewidth=1, label='Forest', markerfacecolor='white', markeredgewidth=0.5, alpha=0.7)
+        markersize=3, linewidth=1, label='BCI', markerfacecolor='white', markeredgewidth=0.5, alpha=0.7)
 ax.plot(resolutions, senm_communities, 's--', color='#1f77b4', 
         markersize=3, linewidth=1, label='SENM', markerfacecolor='white', markeredgewidth=0.5, alpha = 0.7)
 
 ax.set_xlabel('Scale (m)', fontsize=8)
-ax.set_ylabel(r'$N_{\mathrm{comm}}$', fontsize=8)
+ax.set_ylabel('Significant eigenvalues', fontsize=8)
 ax.legend(fontsize=7, frameon=False, loc='best')
 ax.grid(False)
 ax.tick_params(labelsize=7)
