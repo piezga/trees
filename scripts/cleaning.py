@@ -180,7 +180,8 @@ for method in methods:
         return P
 
     print("Converting precision matrix to partial correlation matrix...")
-    P_clean = standardize_matrix(J_clean)
+    P_clean_unfiltered = standardize_matrix(J_clean)
+    P_clean = MarchenkoPastur(P_clean_unfiltered, num_species, n_sites)
 
     print(f"  ✓ Partial correlation matrix shape: {P_clean.shape}")
     print(f"  ✓ Diagonal: {np.diag(P_clean)[:5]}...")  # Should be all 1s
