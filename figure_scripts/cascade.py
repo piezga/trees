@@ -115,8 +115,8 @@ all_pairs_idx   = hardcoded_idx   + [mp_pair_idx,   nutr_pair_idx, partial_pair_
 all_pairs_label = hardcoded_full  + [mp_pair_names, nutr_pair_names, partial_pair_names]
 
 # === Extract trajectories ===
-stages = ['Raw', 'MP filtered', 'Nutrient\nregression + MP', 'Nutrient\nregression + MP\n(partial correlations)']
-pair_trajectories = [[M[i, j] for M in matrices] for i, j in all_pairs_idx]
+stages = ['Raw', 'MP filtered', 'Nutrient\nregression + MP']
+pair_trajectories = [[M[i, j] for M in matrices[:-1]] for i, j in all_pairs_idx]
 # === Figure ===
 fig, ax = plt.subplots(figsize=(3.5, 3.2), dpi=300)
 
